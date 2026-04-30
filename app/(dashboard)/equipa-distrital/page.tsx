@@ -138,14 +138,44 @@ export default function EquipaDistrital() {
   async function handleAtribuirCargo() {
     if (!selectedMember || !novoCargoDistrital.trim()) return
     setIsAssigning(true)
-    const { error } = await supabase.from('perfis').update({ 
-      cargo_distrital: novoCargoDistrital,
-      ordem_equipa_distrital: equipaFiltrada.length + 1
-    }).eq('id', selectedMember.id)
-    if (!error) {
-      setSearchTerm(''); setSelectedMember(null); setNovoCargoDistrital('');
-      await loadData()
+
+    // 1. Verificar se o membro já tem cargos distritais
+    const cargoAtual = selectedMember.cargo_distrital;
+    let cargoFinal = novoCargoDistrital.trim();
+
+    if (cargoAtual && cargoAtual.toLowerCase() !== 'não membro' && cargoAtual.trim() !== '') {
+      // Se já tem um cargo, verificamos se o novo já existe para evitar duplicados exatos
+      const listaCargos = cargoAtual.split(',').map((c: string) => c.trim());
+      
+      if (!listaCargos.includes(novoCargoDistrital.trim())) {
+        // Acrescentamos o novo cargo à lista existente com uma vírgula
+        cargoFinal = `${cargoAtual}, ${novoCargoDistrital.trim()}`;
+      } else {
+        alert("Este sócio já possui este cargo atribuído.");
+        setIsAssigning(false);
+        return;
+      }
     }
+
+    // 2. Atualizar no Supabase
+    const { error } = await supabase
+      .from('perfis')
+      .update({ 
+        cargo_distrital: cargoFinal,
+        // Mantemos a ordem original se já existir, senão colocamos no fim
+        ordem_equipa_distrital: selectedMember.ordem_equipa_distrital || (equipaFiltrada.length + 1)
+      })
+      .eq('id', selectedMember.id)
+
+    if (!error) {
+      setSearchTerm(''); 
+      setSelectedMember(null); 
+      setNovoCargoDistrital('');
+      await loadData(); // Recarrega os dados para expandir as linhas na tabela
+    } else {
+      alert("Erro ao atribuir cargo: " + error.message);
+    }
+    
     setIsAssigning(false)
   }
 
@@ -255,13 +285,23 @@ export default function EquipaDistrital() {
                     <input value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setSelectedMember(null); setShowDropdown(true); }} className="w-full bg-gray-50 border border-gray-100 rounded-xl py-3.5 pl-10 pr-4 text-sm text-gray-900 font-bold outline-none focus:ring-2 focus:ring-blue-100" placeholder="Pesquisar sócio..." />
                     {showDropdown && searchTerm.length > 0 && !selectedMember && (
                       <ul className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                        {todosPerfis.filter(m => `${m.primeiro_nome} ${m.apelido}`.toLowerCase().includes(searchTerm.toLowerCase())).map(m => (
-                          <li key={m.id} onClick={() => { setSelectedMember(m); setSearchTerm(`${m.primeiro_nome} ${m.apelido}`); setShowDropdown(false); }} className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
-                              <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${m.primeiro_nome || ''} ${m.apelido || ''}`.trim())}&background=ffffff&color=2f3e65`} alt={`${m.primeiro_nome} ${m.apelido}`} className="w-full h-full object-cover" />
-                            </div>
-                            <span className="text-sm font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
-                          </li>
+                        {todosPerfis
+                          .filter(m => `${m.primeiro_nome} ${m.apelido}`.toLowerCase().includes(searchTerm.toLowerCase()))
+                          .map(m => (
+                            <li 
+                              key={m.id} 
+                              onClick={() => { 
+                                setSelectedMember(m); // Aqui passamos o objeto 'm' que contém o cargo_distrital atual
+                                setSearchTerm(`${m.primeiro_nome} ${m.apelido}`); 
+                                setShowDropdown(false); 
+                              }} 
+                              className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3"
+                            >
+                              <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                                <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${m.primeiro_nome || ''} ${m.apelido || ''}`.trim())}&background=ffffff&color=2f3e65`} alt={`${m.primeiro_nome} ${m.apelido}`} className="w-full h-full object-cover" />
+                              </div>
+                              <span className="text-sm font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
+                            </li>
                         ))}
                       </ul>
                     )}
