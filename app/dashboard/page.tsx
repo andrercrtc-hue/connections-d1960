@@ -119,7 +119,7 @@ export default function Dashboard() {
         <section className="px-10 py-8">
           <div className="bg-[#003d7a] rounded-[32px] p-12 text-white relative overflow-hidden flex justify-between items-center min-h-[400px]">
             {/* Grelha Decorativa no Fundo */}
-            <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', size: '20px 20px'}}></div>
+              <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
             
             <div className="relative z-10 max-w-xl">
               <span className="bg-[#fca311] text-white text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest mb-6 inline-block">
