@@ -89,7 +89,8 @@ export default function EquipaDistrital() {
               id_unico: `${perfil.id}-comissao-${idx}`,
               cargo_exibir: cm.cargo_na_comissao,
               comissao_exibir: cm.comissoes?.nome || '-',
-              tipo: 'comissao'
+              tipo: 'comissao',
+              comissao_membro_id: cm.id
             });
           });
         }
@@ -113,6 +114,7 @@ export default function EquipaDistrital() {
         .select(`
           *,
           comissao_membros (
+            id,
             cargo_na_comissao,
             ordem,
             perfis (
@@ -241,10 +243,36 @@ export default function EquipaDistrital() {
     if (!error) { setEditingId(null); loadData(); }
   }
 
-  async function removerDaEquipa(id: string) {
-    if (!confirm("Remover este membro da equipa distrital?")) return
-    const { error } = await supabase.from('perfis').update({ cargo_distrital: 'Não membro', ordem_equipa_distrital: 99 }).eq('id', id)
-    if (!error) loadData()
+  async function removerDaEquipa(row: any) {
+    if (!confirm("Remover este cargo da equipa distrital?")) return
+
+    if (row.tipo === 'comissao' && row.comissao_membro_id) {
+      const { error } = await supabase.from('comissao_membros').delete().eq('id', row.comissao_membro_id)
+      if (!error) loadData()
+      return
+    }
+
+    if (row.tipo === 'distrital') {
+      const cargos = (row.cargo_distrital || '').split(',').map((c: string) => c.trim()).filter(Boolean)
+      let removed = false
+      const novaLista = cargos.filter((cargo: string) => {
+        if (!removed && cargo.toLowerCase() === row.cargo_exibir?.toLowerCase()) {
+          removed = true
+          return false
+        }
+        return true
+      })
+
+      const novoCargoDistrital = novaLista.length > 0 ? novaLista.join(', ') : 'Não membro'
+      const payload: any = { cargo_distrital: novoCargoDistrital }
+      if (novaLista.length === 0) payload.ordem_equipa_distrital = 99
+
+      const { error } = await supabase.from('perfis').update(payload).eq('id', row.id)
+      if (!error) loadData()
+      return
+    }
+
+    alert('Tipo de remoção desconhecido.')
   }
 
   async function apagarComissao(idComissao: string, nomeComissao: string) {
@@ -500,7 +528,7 @@ export default function EquipaDistrital() {
                         {editingId === m.id ? (
                           <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
                         ) : (
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/><Trash2 onClick={() => removerDaEquipa(m.id)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/></div>
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/><Trash2 onClick={() => removerDaEquipa(m)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/></div>
                         )}
                       </td>
                     </tr>
