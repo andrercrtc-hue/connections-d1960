@@ -78,11 +78,13 @@ export default function EquipaDistrital() {
         }
 
         // 2. Verificar se está em comissões e criar uma linha para cada uma
-        if (perfil.comissao_membros && perfil.comissao_membros.length > 0) {
+        const temCargoDistrital = perfil.cargo_distrital && perfil.cargo_distrital.toLowerCase() !== 'não membro'
+
+        if (!temCargoDistrital && perfil.comissao_membros && perfil.comissao_membros.length > 0) {
           perfil.comissao_membros.forEach((cm: any) => {
             listaExpandida.push({
               ...perfil,
-              id_unico: `${perfil.id}-comissao-${cm.comissoes?.nome}`, 
+              id_unico: `${perfil.id}-comissao-${cm.comissoes?.nome}`,
               cargo_exibir: cm.cargo_na_comissao,
               comissao_exibir: cm.comissoes?.nome || '-',
               tipo: 'comissao'
