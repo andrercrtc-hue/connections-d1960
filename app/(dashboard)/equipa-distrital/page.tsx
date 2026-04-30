@@ -435,11 +435,15 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
   // O Governador é o destaque
   const gov = members.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase().includes('governador'));
   
-  // O Gabinete são todos os 'distritais' exceto o Governador
-  const gabinete = members.filter(m => 
-    m.tipo === 'distrital' && 
-    !m.cargo_exibir?.toLowerCase().includes('governador')
-  );
+  // O Gabinete são todos os 'distritais' exceto o Governador, filtrados para não repetir a mesma pessoa
+  const idsVistos = new Set();
+  const gabinete = members.filter(m => {
+    if (m.tipo === 'distrital' && !m.cargo_exibir?.toLowerCase().includes('governador') && !idsVistos.has(m.id)) {
+      idsVistos.add(m.id);
+      return true;
+    }
+    return false;
+  });
   
   // Estado para controlar qual comissão está aberta (Acordeão)
   const [comissaoAberta, setComissaoAberta] = useState<string | null>(null)
