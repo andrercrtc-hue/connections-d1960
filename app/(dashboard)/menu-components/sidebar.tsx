@@ -2,7 +2,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, Home, Briefcase, Calendar, Users, 
-  ClipboardList, HelpCircle, LogOut 
+  ClipboardList, HelpCircle, LogOut, Award
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -13,6 +13,7 @@ export function Sidebar() {
   const menuItems = [
     { icon: <LayoutDashboard size={20}/>, label: "Painel Principal", path: "/dashboard" },
     { icon: <Home size={20}/>, label: "O meu Clube", path: "/dashboard/clube" },
+    { icon: <Award size={20}/>, label: "Equipa Distrital", path: "/equipa-dsitrital" },
     { icon: <Briefcase size={20}/>, label: "Projetos", path: "/dashboard/projetos" },
     { icon: <Calendar size={20}/>, label: "Calendário", path: "/dashboard/calendario" },
     { icon: <Users size={20}/>, label: "Diretório", path: "/dashboard/diretorio" },
