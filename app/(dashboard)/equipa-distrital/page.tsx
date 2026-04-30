@@ -279,9 +279,18 @@ export default function EquipaDistrital() {
 
           {/* 2. STATS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-8 rounded-2xl border border-blue-100 border-t-4 border-t-[#004a99] shadow-sm flex justify-between items-center">
-              <div><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Membros na Equipa</p><p className="text-4xl font-black text-[#004a99]">{equipaFiltrada.length.toString().padStart(2, '0')}</p></div>
-              <LayoutGrid size={32} className="text-gray-100" />
+            {/* CARD: MEMBROS NA EQUIPA */}
+            <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+              <div>
+                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Membros na Equipa</p>
+                {/* Contamos apenas IDs únicos para ignorar duplicados de cargos */}
+                <h3 className="text-4xl font-black text-[#002d5e]">
+                  {String(new Set(equipaFiltrada.map(m => m.id)).size).padStart(2, '0')}
+                </h3>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-200 group-hover:text-blue-500 transition-colors">
+                <Users size={24} />
+              </div>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-orange-100 border-t-4 border-t-[#fca311] shadow-sm flex justify-between items-center">
               <div><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Comissões Ativas</p><p className="text-4xl font-black text-[#fca311]">{comissoes.length.toString().padStart(2, '0')}</p></div>
