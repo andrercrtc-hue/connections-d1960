@@ -106,13 +106,21 @@ export default function Dashboard() {
               <Settings size={20} className="cursor-pointer hover:text-gray-600"/>
             </div>
             <div className="h-10 w-[1px] bg-gray-100 mx-2"></div>
-            <div className="flex items-center gap-3 text-right">
+            
+            {/* Opção 2: Bloco clicável de Perfil (Nome + Foto) */}
+            <div 
+              onClick={() => router.push('/perfil')} 
+              className="flex items-center gap-3 text-right cursor-pointer group"
+            >
               <div>
-                <p className="text-sm font-bold text-gray-800 leading-tight">{perfil?.nome || 'Utilizador'}</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{perfil?.cargo === 'governador' ? 'Governador Distrital' : 'Membro de Clube'}</p>
+                <p className="text-sm font-bold text-gray-800 leading-tight group-hover:text-[#004a99] transition-colors">
+                  {perfil?.nome || 'Utilizador'}
+                </p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  {perfil?.cargo === 'governador' ? 'Governador Distrital' : 'Membro de Clube'}
+                </p>
               </div>
-              {/* 3. Imagem dinâmica com fallback para UI Avatars */}
-              <div className="w-10 h-10 bg-blue-100 rounded-full overflow-hidden border-2 border-white shadow-sm">
+              <div className="w-10 h-10 bg-blue-100 rounded-full overflow-hidden border-2 border-white shadow-sm group-hover:border-[#004a99] transition-all">
                  <img 
                     src={perfil?.avatar_url || `https://ui-avatars.com/api/?name=${perfil?.nome || 'User'}&background=004a99&color=fff`} 
                     alt="Perfil" 
@@ -123,7 +131,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* O resto do código mantém-se exatamente igual... */}
+        {/* HERO SECTION */}
         <section className="px-10 py-8">
           <div className="bg-[#003d7a] rounded-[32px] p-12 text-white relative overflow-hidden flex justify-between items-center min-h-[400px]">
               <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
@@ -197,7 +205,6 @@ export default function Dashboard() {
   )
 }
 
-/* COMPONENTES AUXILIARES (Mantidos exatamente iguais) */
 function SidebarItem({ icon, label, active = false }: any) {
   return (
     <a href="#" className={`flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-sm transition-all ${active ? 'bg-blue-50 text-[#004a99] border-l-4 border-[#004a99]' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
