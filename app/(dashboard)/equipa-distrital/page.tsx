@@ -331,16 +331,24 @@ export default function EquipaDistrital() {
   return (
     <div className="max-w-7xl mx-auto space-y-10 pb-20">
       
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Gestão da Equipa Distrital</h1>
+      {viewMode === 'admin' ? (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Gestão da Equipa Distrital</h1>
+          </div>
+          {isAdmin && (
+            <button onClick={() => setViewMode(viewMode === 'admin' ? 'user' : 'admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
+              {viewMode === 'admin' ? <><Eye size={16}/> Ver como Sócio</> : <><Settings2 size={16}/> Voltar a Editar</>}
+            </button>
+          )}
         </div>
-        {isAdmin && (
-          <button onClick={() => setViewMode(viewMode === 'admin' ? 'user' : 'admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
-            {viewMode === 'admin' ? <><Eye size={16}/> Ver como Sócio</> : <><Settings2 size={16}/> Voltar a Editar</>}
-          </button>
-        )}
-      </div>
+      ) : (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Equipa Distrital</h1>
+          </div>
+        </div>
+      )}
 
       {viewMode === 'admin' ? (
         <div className="space-y-8 animate-in fade-in duration-500">
