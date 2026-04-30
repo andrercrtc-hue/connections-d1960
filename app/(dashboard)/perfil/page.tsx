@@ -163,7 +163,7 @@ export default function ProfilePage() {
       
       <div>
         <h1 className="text-2xl font-bold text-gray-800 mb-1">Perfil do Utilizador</h1>
-        <p className="text-gray-500 text-sm">Gira a tua informação pessoal e preferências de conta no Rotary Nexus.</p>
+        <p className="text-gray-500 text-sm">Gira a sua informação pessoal e preferências de conta no Rotary Nexus.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
