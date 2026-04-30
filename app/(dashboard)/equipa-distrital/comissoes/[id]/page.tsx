@@ -159,38 +159,44 @@ export default function FormularioComissao() {
       const dadosComissao = { nome, icone, descricao };
 
       if (isEditing) {
-        // Atualizar dados básicos
-        await supabase.from('comissoes').update(dadosComissao).eq('id', idActivo)
-        // Limpar membros para re-inserção (estratégia de sync mais simples)
+        // 1. Atualizar dados básicos
+        const { error: errUpdate } = await supabase.from('comissoes').update(dadosComissao).eq('id', idActivo)
+        if (errUpdate) throw errUpdate;
+
+        // 2. Limpar membros para re-inserção (estratégia de sync mais simples)
         await supabase.from('comissao_membros').delete().eq('comissao_id', idActivo)
       } else {
-        // Criar nova comissão
-        const { data: nova, error } = await supabase.from('comissoes').insert([dadosComissao]).select().single()
-        if (error) throw error
+        // 3. Criar nova comissão
+        const { data: nova, error: errInsert } = await supabase.from('comissoes').insert([dadosComissao]).select().single()
+        if (errInsert) throw errInsert
         idActivo = nova.id
       }
 
-      // Inserir lista de membros final
+      // 4. GRAVAR MEMBROS (Esta é a parte que faltava na tua imagem)
       if (membros.length > 0) {
         const payloadMembros = membros.map((m, idx) => ({
           comissao_id: idActivo,
           perfil_id: m.id,
           cargo_na_comissao: m.cargo,
-          ordem: idx + 1
+          ordem: idx + 1 // Grava a ordem que definimos com as setas
         }))
         
-        const { error: errorMembros } = await supabase.from('comissao_membros').insert(payloadMembros)
-        if (errorMembros) throw errorMembros
+        const { error: errMembros } = await supabase.from('comissao_membros').insert(payloadMembros)
+        if (errMembros) throw errMembros
       }
 
+      // 5. Sucesso e Redirecionamento
+      alert(isEditing ? "Alterações guardadas!" : "Comissão criada!")
       router.push('/equipa-distrital')
       router.refresh()
-    } catch (err: any) {
-      alert("Erro ao gravar: " + err.message)
-    } finally {
-      setLoading(false)
+
+    } catch (e: any) { 
+      alert("Erro ao gravar: " + e.message) 
+    } finally { 
+      setLoading(false) 
     }
   }
+
 
   if (!dataLoaded) return (
     <div className="h-96 flex flex-col items-center justify-center gap-4 text-gray-400">

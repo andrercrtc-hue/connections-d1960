@@ -367,7 +367,7 @@ export default function EquipaDistrital() {
                     <div key={com.id} className="p-5 bg-gray-50 border border-gray-100 rounded-2xl flex justify-between items-center group hover:bg-white hover:border-blue-100 transition-all">
                       <div>
                         <p className="font-bold text-gray-900 font-medium text-sm">{com.nome}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{com.comissao_membros[0]?.count || 0} Membros Registados</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{com.comissao_membros?.length || 0} Membros Registados</p>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         {/* LÁPIS: Em vez de um <button>, usamos um <Link> do Next.js para navegar para a página de edição usando o ID da comissão */}
