@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { 
   Mail, Phone, Star, Plus, Edit2, Trash2, ChevronUp, ChevronDown,
@@ -219,6 +220,9 @@ export default function EquipaDistrital() {
                       <ul className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
                         {todosPerfis.filter(m => `${m.primeiro_nome} ${m.apelido}`.toLowerCase().includes(searchTerm.toLowerCase())).map(m => (
                           <li key={m.id} onClick={() => { setSelectedMember(m); setSearchTerm(`${m.primeiro_nome} ${m.apelido}`); setShowDropdown(false); }} className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                              <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${m.primeiro_nome || ''} ${m.apelido || ''}`.trim())}&background=ffffff&color=2f3e65`} alt={`${m.primeiro_nome} ${m.apelido}`} className="w-full h-full object-cover" />
+                            </div>
                             <span className="text-sm font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
                           </li>
                         ))}
@@ -233,7 +237,7 @@ export default function EquipaDistrital() {
             <div className="lg:col-span-3 bg-white p-8 rounded-[24px] border border-gray-100 shadow-sm">
                <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-black text-[#004a99]">Gestão de Comissões</h3>
-                  <button className="bg-[#fca311] text-white px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2"><Plus size={16}/> Nova Comissão</button>
+                  <Link href="/equipa-distrital/comissoes/nova comissao" className="bg-[#fca311] text-white px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2"><Plus size={16}/> Nova Comissão</Link>
                </div>
                <div className="p-5 bg-gray-50 border border-gray-100 rounded-2xl flex justify-between items-center group hover:bg-white hover:border-blue-100 transition-all">
                   <div><p className="font-bold text-gray-900 font-medium text-sm">Desenvolvimento e Expansão</p><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">12 Membros Registados</p></div>
