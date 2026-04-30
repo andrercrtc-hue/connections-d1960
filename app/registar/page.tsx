@@ -116,7 +116,7 @@ export default function RegistarPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Primeiro Nome</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={18} />
                     <input 
                       required
                       value={formData.primeiro_nome}
@@ -141,7 +141,7 @@ export default function RegistarPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={18} />
                   <input 
                     type="email" required
                     value={formData.email}
@@ -155,7 +155,7 @@ export default function RegistarPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Palavra-passe</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={18} />
                   <input 
                     type="password" required minLength={6}
                     value={formData.password}
@@ -169,7 +169,7 @@ export default function RegistarPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Confirmar Palavra-passe</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={18} />
                   <input 
                     type="password" required minLength={6}
                     value={formData.confirm_password}

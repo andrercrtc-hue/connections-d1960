@@ -74,7 +74,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={20} />
                 <input
                   type="email"
                   placeholder="nome@rotary1960.org"
@@ -95,7 +95,7 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={20} />
                 <input
                   type="password"
                   placeholder="••••••••"
@@ -128,7 +128,7 @@ export default function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200"></span>
             </div>
-            <span className="relative px-4 bg-white text-sm text-gray-400 uppercase font-medium">ou</span>
+            <span className="relative px-4 bg-white text-sm text-gray-900 font-medium uppercase font-medium">ou</span>
           </div>
 
           {/* Botão Registar */}
@@ -145,7 +145,7 @@ export default function LoginPage() {
               Precisa de ajuda? <a href="#" className="text-[#004a99] font-bold hover:underline">Contacte o Apoio Técnico</a>
             </p>
             
-            <div className="flex justify-center gap-6 text-gray-400">
+            <div className="flex justify-center gap-6 text-gray-900 font-medium">
               <Globe size={20} className="hover:text-gray-600 cursor-pointer transition" />
               <ShieldCheck size={20} className="hover:text-gray-600 cursor-pointer transition" />
               <HelpCircle size={20} className="hover:text-gray-600 cursor-pointer transition" />
