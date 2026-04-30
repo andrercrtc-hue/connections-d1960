@@ -45,10 +45,10 @@ export function TopNav() {
         >
           <div className="hidden sm:block">
             <p className="text-sm font-bold text-gray-800 leading-tight group-hover:text-[#004a99] transition-colors">
-              {perfil?.primeiro_nome} {perfil?.apelido || 'Ribeiro Carvalho'}
+              {perfil?.primeiro_nome} {perfil?.apelido || 'Apelido'}
             </p>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">
-              {perfil?.cargo || 'Governador Distrital'}
+              {perfil?.cargo || 'Membro'}
             </p>
           </div>
           <div className="w-10 h-10 bg-blue-100 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:border-[#004a99] transition-all">
