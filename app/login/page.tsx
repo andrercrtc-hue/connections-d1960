@@ -3,12 +3,13 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, Lock, UserPlus, Globe, ShieldCheck, HelpCircle } from 'lucide-react'
+import { Mail, Lock, UserPlus, Globe, ShieldCheck, HelpCircle, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,26 +31,27 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-white">
+      
       {/* COLUNA ESQUERDA: Branding e Info */}
       <div className="hidden lg:flex w-1/2 bg-[#003d7a] p-16 flex-col justify-center text-white relative overflow-hidden">
-        {/* Elemento Decorativo (Engrenagem subtil no fundo) */}
+        {/* Elemento Decorativo (Engrenagem no fundo) */}
         <div className="absolute bottom-[-10%] left-[-10%] opacity-10">
           <SettingsIcon size={400} />
         </div>
 
         <div className="relative z-10">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold inline-block">
+            <h2 className="text-3xl font-bold inline-block text-white">
               Rotary <span className="text-[#fca311] border-b-4 border-[#fca311]">Nexus</span>
             </h2>
           </div>
 
-          <h1 className="text-6xl font-extrabold leading-tight mb-8">
-            A rede que une os clubes do <br />
+          <h1 className="text-6xl font-extrabold leading-tight mb-8 text-white">
+            A rede que une o <br />
             <span className="text-white">Distrito 1960</span>
           </h1>
 
-          <p className="text-xl text-blue-100 max-w-md leading-relaxed opacity-80">
+          <p className="text-xl text-blue-50 max-w-md leading-relaxed font-medium opacity-90">
             Liderança, amizade e serviço. Entre na plataforma oficial do Rotary Nexus para gerir projetos, eventos e impacto comunitário.
           </p>
         </div>
@@ -59,26 +61,27 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-24 relative">
         
         {/* Ícone de Pessoas Subtil no Topo Direito */}
-        <div className="absolute top-12 right-12 opacity-5 hidden sm:block">
+        <div className="absolute top-12 right-12 opacity-5 hidden sm:block text-gray-900">
           <UsersIcon size={120} />
         </div>
 
         <div className="w-full max-w-md">
           <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-4xl font-bold text-gray-800 mb-2">Bem-vindo de volta</h2>
-            <p className="text-gray-500">Inicie sessão na sua conta de Governadoria</p>
+            <h2 className="text-4xl font-black text-gray-900 mb-2 tracking-tight">Bem-vindo de volta</h2>
+            <p className="text-gray-700 font-bold">Inicie sessão na sua conta de Governadoria</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
+            
             {/* Campo Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-black text-gray-900 mb-2 uppercase tracking-widest">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={20} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900" size={20} />
                 <input
                   type="email"
                   placeholder="nome@rotary1960.org"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#003d7a] focus:border-transparent transition-all outline-none"
+                  className="w-full pl-12 pr-4 py-4 bg-[#f8fafc] border-2 border-gray-100 rounded-xl text-gray-900 font-bold placeholder-gray-400 focus:ring-2 focus:ring-[#003d7a] focus:bg-white focus:border-transparent transition-all outline-none"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -89,37 +92,44 @@ export default function LoginPage() {
             {/* Campo Password */}
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold text-gray-700">Palavra-passe</label>
-                <Link href="/forgot-password text-sm font-bold text-[#003d7a] hover:underline">
+                <label className="text-sm font-black text-gray-900 uppercase tracking-widest">Palavra-passe</label>
+                <Link href="/forgot-password" size={14} className="text-sm font-black text-[#003d7a] hover:underline">
                   Esqueceu-se?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900 font-medium" size={20} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-900" size={20} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#003d7a] focus:border-transparent transition-all outline-none"
+                  className="w-full pl-12 pr-12 py-4 bg-[#f8fafc] border-2 border-gray-100 rounded-xl text-gray-900 font-bold placeholder-gray-400 focus:ring-2 focus:ring-[#003d7a] focus:bg-white focus:border-transparent transition-all outline-none"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 
             {/* Checkbox Manter Sessão */}
             <div className="flex items-center gap-3">
-              <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-[#003d7a] focus:ring-[#003d7a]" />
-              <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">Manter sessão iniciada</label>
+              <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-[#003d7a] focus:ring-[#003d7a] cursor-pointer" />
+              <label htmlFor="remember" className="text-sm text-gray-900 font-bold cursor-pointer">Manter sessão iniciada</label>
             </div>
 
             {/* Botão Entrar */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#004a99] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#003d7a] transition-all shadow-lg shadow-blue-100 disabled:opacity-50"
+              className="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-lg hover:bg-[#003d7a] transition-all shadow-lg shadow-blue-100 disabled:opacity-50"
             >
-              {loading ? 'A entrar...' : 'Entrar'}
+              {loading ? 'A entrar...' : 'Entrar na Plataforma'}
             </button>
           </form>
 
@@ -128,27 +138,27 @@ export default function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200"></span>
             </div>
-            <span className="relative px-4 bg-white text-sm text-gray-900 font-medium uppercase font-medium">ou</span>
+            <span className="relative px-4 bg-white text-sm text-gray-900 font-black uppercase tracking-widest">ou</span>
           </div>
 
           {/* Botão Registar */}
           <button 
-            onClick={() => router.push('/registar')} // <--- Adiciona isto
-            className="w-full bg-[#fce8d5] text-[#8b5e34] py-3.5 rounded-xl font-bold text-sm hover:bg-[#fbdcb9] transition flex items-center justify-center gap-2"
-            >
-              <UserPlus size={18} /> Registar
-            </button>
+            onClick={() => router.push('/registar')}
+            className="w-full bg-[#fce8d5] text-[#8b5e34] py-4 rounded-xl font-black text-sm hover:bg-[#fbdcb9] transition flex items-center justify-center gap-2 shadow-sm"
+          >
+            <UserPlus size={18} /> Criar Nova Conta
+          </button>
 
           {/* Footer do Login */}
           <div className="mt-12 text-center">
-            <p className="text-gray-500 text-sm mb-6">
-              Precisa de ajuda? <a href="#" className="text-[#004a99] font-bold hover:underline">Contacte o Apoio Técnico</a>
+            <p className="text-gray-900 text-sm font-bold mb-6">
+              Precisa de ajuda? <a href="#" className="text-[#004a99] font-black hover:underline">Contacte o Apoio Técnico</a>
             </p>
             
-            <div className="flex justify-center gap-6 text-gray-900 font-medium">
-              <Globe size={20} className="hover:text-gray-600 cursor-pointer transition" />
-              <ShieldCheck size={20} className="hover:text-gray-600 cursor-pointer transition" />
-              <HelpCircle size={20} className="hover:text-gray-600 cursor-pointer transition" />
+            <div className="flex justify-center gap-8 text-gray-900">
+              <Globe size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Idioma" />
+              <ShieldCheck size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Segurança" />
+              <HelpCircle size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Ajuda" />
             </div>
           </div>
         </div>
@@ -157,7 +167,8 @@ export default function LoginPage() {
   )
 }
 
-// Ícones Auxiliares para o Design
+// --- ÍCONES DE APOIO AO DESIGN ---
+
 function SettingsIcon({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
