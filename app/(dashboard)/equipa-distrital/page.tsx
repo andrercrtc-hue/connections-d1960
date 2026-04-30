@@ -460,7 +460,7 @@ export default function EquipaDistrital() {
                           <input 
                             type="number" 
                             min={1}
-                            value={m.ordem_equipa_distrital || ''} 
+                            defaultValue={m.ordem_equipa_distrital || ''} 
                             onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))} 
                             className="w-16 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none focus:ring-1 focus:ring-blue-400" 
                           />
