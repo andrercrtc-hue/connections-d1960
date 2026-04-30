@@ -118,7 +118,9 @@ export default function EquipaDistrital() {
             perfis (
               primeiro_nome,
               apelido,
-              avatar_url
+              avatar_url,
+              email,
+              telefone
             )
           )
         `)
@@ -614,13 +616,15 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
                     <div className="px-6 pb-8 pt-2 border-t border-gray-50 bg-gray-50/30">
                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                          {membrosOrdenados.map((m: any, idx: number) => (
-                           <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                           <div key={idx} className="flex items-start gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
                               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
                                 <img src={m.perfis?.avatar_url || `https://ui-avatars.com/api/?name=${m.perfis?.primeiro_nome}`} className="w-full h-full object-cover" />
                               </div>
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <p className="text-sm font-black text-[#002d5e] truncate leading-tight">{m.perfis?.primeiro_nome} {m.perfis?.apelido}</p>
                                 <p className="text-[10px] font-bold text-[#fca311] uppercase tracking-wider">{m.cargo_na_comissao}</p>
+                                {m.perfis?.email && <p className="text-[9px] text-gray-500 truncate mt-1">{m.perfis?.email}</p>}
+                                {m.perfis?.telefone && <p className="text-[9px] text-gray-500">{m.perfis?.telefone}</p>}
                               </div>
                            </div>
                          ))}
