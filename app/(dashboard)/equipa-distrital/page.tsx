@@ -61,16 +61,47 @@ export default function EquipaDistrital() {
       .order('primeiro_nome', { ascending: true })
 
     if (perfis) {
-      setTodosPerfis(perfis)
-      
-      // 2. Lógica de Filtragem: Tem cargo distrital OU está numa comissão
-      const soEquipa = perfis.filter(m => {
-        const temCargoDistrital = m.cargo_distrital && m.cargo_distrital.toLowerCase() !== 'não membro';
-        const estaEmComissao = m.comissao_membros && m.comissao_membros.length > 0;
-        return temCargoDistrital || estaEmComissao;
-      })
-    setEquipaFiltrada(soEquipa)
-  }
+      setTodosPerfis(perfis);
+
+      const listaExpandida: any[] = [];
+
+      perfis.forEach(perfil => {
+        // 1. Verificar se tem cargo distrital (ex: Governador, Tesoureiro)
+        if (perfil.cargo_distrital && perfil.cargo_distrital.toLowerCase() !== 'não membro') {
+          listaExpandida.push({
+            ...perfil,
+            id_unico: `${perfil.id}-distrital`, // Chave única para o React não se baralhar
+            cargo_exibir: perfil.cargo_distrital,
+            comissao_exibir: '-',
+            tipo: 'distrital'
+          });
+        }
+
+        // 2. Verificar se está em comissões e criar uma linha para cada uma
+        if (perfil.comissao_membros && perfil.comissao_membros.length > 0) {
+          perfil.comissao_membros.forEach((cm: any) => {
+            listaExpandida.push({
+              ...perfil,
+              id_unico: `${perfil.id}-comissao-${cm.comissoes?.nome}`, 
+              cargo_exibir: cm.cargo_na_comissao,
+              comissao_exibir: cm.comissoes?.nome || '-',
+              tipo: 'comissao'
+            });
+          });
+        }
+      });
+
+      // Ordenar a lista final pela coluna de ordem
+      const listaOrdenada = listaExpandida.sort((a, b) => 
+        (a.ordem_equipa_distrital || 99) - (b.ordem_equipa_distrital || 99)
+      );
+
+      setEquipaFiltrada(listaOrdenada);
+
+      // Manter a lógica do governador para a mensagem
+      const gov = listaOrdenada.find(m => m.cargo_exibir?.toLowerCase().includes('governador'));
+      if (gov) setMensagemGov(gov.bio || "Servir para transformar.");
+    }
 
     // Carregar Comissões (Dinâmico)
     const { data: coms } = await supabase
@@ -279,26 +310,24 @@ export default function EquipaDistrital() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {equipaFiltrada.map((m) => (
-                    <tr key={m.id} className="hover:bg-gray-50/50 transition group text-gray-900 font-medium">
+                    <tr key={m.id_unico} className="hover:bg-gray-50/50 transition group text-gray-900 font-medium">
+                      {/* COLUNA ORDEM (Igual) */}
                       <td className="px-8 py-4">
                         <div className="flex items-center gap-2">
                            <div className="flex flex-col">
                               <button onClick={() => alterarOrdemSeta(m, 'subir')} className="text-gray-400 hover:text-blue-600"><ChevronUp size={14}/></button>
                               <button onClick={() => alterarOrdemSeta(m, 'descer')} className="text-gray-400 hover:text-blue-600"><ChevronDown size={14}/></button>
                            </div>
-                           <input 
+                           <input
                               type="number"
                               value={m.ordem_equipa_distrital}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value);
-                                const newEquipa = equipaFiltrada.map(item => item.id === m.id ? {...item, ordem_equipa_distrital: val} : item);
-                                setEquipaFiltrada(newEquipa);
-                              }}
                               onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))}
-                              className="w-12 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black text-gray-900 outline-none"
+                              className="w-12 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none"
                            />
                         </div>
                       </td>
+
+                      {/* COLUNA MEMBRO (Com imagem) */}
                       <td className="px-8 py-4">
                         <div className="flex items-center gap-3">
                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
@@ -307,38 +336,29 @@ export default function EquipaDistrital() {
                            <span className="font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
                         </div>
                       </td>
-                      {/* FUNÇÃO DISTRITAL (Ou cargo na comissão se não tiver distrital) */}
+
+                      {/* COLUNA CARGO (Usa o cargo_exibir que criámos no loadData) */}
                       <td className="px-8 py-4">
                         {editingId === m.id ? (
                           <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-medium text-gray-900 outline-none w-full" />
                         ) : (
                           <span className="bg-blue-50 text-[#004a99] px-3 py-1.5 rounded-full text-[10px] font-black uppercase">
-                            {m.cargo_distrital && m.cargo_distrital !== 'Não membro' 
-                              ? m.cargo_distrital 
-                              : m.comissao_membros?.[0]?.cargo_na_comissao || '-'}
+                            {m.cargo_exibir}
                           </span>
                         )}
                       </td>
-                      
-                      {/* NOVA COLUNA: NOME DA COMISSÃO */}
+
+                      {/* COLUNA COMISSÃO (Usa o comissao_exibir) */}
                       <td className="px-8 py-4 text-gray-500 font-bold uppercase text-[10px] tracking-tight">
-                         {m.comissao_membros?.[0]?.comissoes?.nome || '-'}
+                         {m.comissao_exibir}
                       </td>
-                      
-                      {/* ACÇÕES (Mantém as que já tinhas) */}
+
+                      {/* COLUNA AÇÕES (Igual) */}
                       <td className="px-8 py-4 text-right">
                         {editingId === m.id ? (
                           <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
                         ) : (
                           <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/><Trash2 onClick={() => removerDaEquipa(m.id)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/></div>
-                        )}
-                      </td>
-                      
-                      <td className="px-8 py-4 text-right">
-                        {editingId === m.id ? (
-                          <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
-                        ) : (
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500" size={16}/><Trash2 onClick={() => removerDaEquipa(m.id)} className="cursor-pointer text-gray-400 hover:text-red-500" size={16}/></div>
                         )}
                       </td>
                     </tr>
