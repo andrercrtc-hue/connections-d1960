@@ -12,6 +12,7 @@ export default function EquipaDistrital() {
   const [equipaFiltrada, setEquipaFiltrada] = useState<any[]>([])
   const [comissoes, setComissoes] = useState<any[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
+  const [canEditPublic, setCanEditPublic] = useState(false)
   const [viewMode, setViewMode] = useState<'admin' | 'user'>('admin')
   const [loading, setLoading] = useState(true)
 
@@ -41,12 +42,18 @@ export default function EquipaDistrital() {
     if (user) {
       const { data: perfil } = await supabase.from('perfis').select('*').eq('id', user.id).single()
       const cargoD = perfil?.cargo_distrital?.toLowerCase() || ''
-      const temAcesso = cargoD.includes('governador') || cargoD.includes('secretario') || cargoD.includes('administrador')
+      const isGovernorOrAdmin = cargoD.includes('governador') || cargoD.includes('administrador')
+      const isSecretary = cargoD.includes('secretario')
+      const temAcesso = isGovernorOrAdmin || isSecretary
       setIsAdmin(temAcesso)
-      if (!temAcesso) setViewMode('user')
-    }
-
-    // 1. Carregar Perfis com dados de comissões
+      setCanEditPublic(isGovernorOrAdmin)
+      if (isGovernorOrAdmin) {
+        setViewMode('user')
+      } else if (!temAcesso) {
+        setViewMode('user')
+      } else {
+        setViewMode('admin')
+      }
     const { data: perfis } = await supabase
       .from('perfis')
       .select(`
@@ -337,8 +344,8 @@ export default function EquipaDistrital() {
             <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Gestão da Equipa Distrital</h1>
           </div>
           {isAdmin && (
-            <button onClick={() => setViewMode(viewMode === 'admin' ? 'user' : 'admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
-              {viewMode === 'admin' ? <><Eye size={16}/> Ver como Sócio</> : <><Settings2 size={16}/> Voltar a Editar</>}
+            <button onClick={() => setViewMode('user')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
+              <Eye size={16}/> Ver como Sócio
             </button>
           )}
         </div>
@@ -347,6 +354,11 @@ export default function EquipaDistrital() {
           <div>
             <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Equipa Distrital</h1>
           </div>
+          {canEditPublic && (
+            <button onClick={() => setViewMode('admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
+              <Edit2 size={16}/> Editar
+            </button>
+          )}
         </div>
       )}
 
