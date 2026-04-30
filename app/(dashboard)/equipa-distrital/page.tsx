@@ -326,10 +326,18 @@ export default function EquipaDistrital() {
             </div>
 
             <div className="lg:col-span-3 bg-white p-8 rounded-[24px] border border-gray-100 shadow-sm">
-               <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-black text-[#004a99]">Gestão de Comissões</h3>
-                  <Link href="/equipa-distrital/comissoes/nova" className="bg-[#fca311] text-white px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2 shadow-md"><Plus size={16}/> Nova Comissão</Link>
-               </div>
+                {/* CABEÇALHO DA GESTÃO DE COMISSÕES */}
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-black text-[#002d5e]">Gestão de Comissões</h3>
+                  
+                  {/* O Link aponta para 'nova', que é capturado pelo params.id da nossa página dinâmica */}
+                  <Link 
+                    href="/equipa-distrital/comissoes/nova" 
+                    className="bg-[#fca311] text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase shadow-md flex items-center gap-2 hover:bg-[#e5940e] transition-colors"
+                  >
+                    <Plus size={16} /> Nova Comissão
+                  </Link>
+                </div>
                <div className="space-y-3">
                   {comissoes.map((com) => (
                     <div key={com.id} className="p-5 bg-gray-50 border border-gray-100 rounded-2xl flex justify-between items-center group hover:bg-white hover:border-blue-100 transition-all">
