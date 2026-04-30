@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { 
   Mail, Phone, Star, Plus, Edit2, Trash2, ChevronUp, ChevronDown,
-  Search, Users, LayoutGrid, Eye, Settings2, FileDown, Save, X, Check 
+  Search, Users, LayoutGrid, Eye, Settings2, FileDown, Save, X, Check, Layout
 } from 'lucide-react'
 
 export default function EquipaDistrital() {
@@ -319,18 +319,31 @@ export default function EquipaDistrital() {
           </section>
         </div>
       ) : (
-        <PublicTeamView members={equipaFiltrada} mensagem={mensagemGov} />
+        <PublicTeamView members={equipaFiltrada} mensagem={mensagemGov} comissoes={comissoes} />
       )}
     </div>
   )
 }
 
-function PublicTeamView({ members, mensagem }: { members: any[], mensagem: string }) {
+function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mensagem: string, comissoes: any[] }) {
   const gov = members.find(m => m.cargo_distrital?.toLowerCase().includes('governador'))
   const gabinete = members.filter(m => !m.cargo_distrital?.toLowerCase().includes('governador'))
+  
+  // Estado para controlar qual comissão está aberta (Acordeão)
+  const [comissaoAberta, setComissaoAberta] = useState<string | null>(null)
+
+  // Paleta de cores para os ícones das comissões (Azul, Laranja, Rosa, Verde...)
+  const coresIcones = [
+    { bg: 'bg-[#eef4ff]', text: 'text-[#3178c6]' },
+    { bg: 'bg-[#ffedd5]', text: 'text-[#f59e0b]' },
+    { bg: 'bg-[#fce7f3]', text: 'text-[#db2777]' },
+    { bg: 'bg-[#dcfce7]', text: 'text-[#10b981]' },
+  ]
 
   return (
     <div className="space-y-12 animate-in slide-in-from-bottom-4">
+      
+      {/* DESTAQUE GOVERNADOR */}
       <section className="bg-white rounded-[32px] p-12 border border-gray-100 shadow-sm relative overflow-hidden text-gray-900 font-medium">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#004a99] to-[#fca311]"></div>
         <div className="flex flex-col md:flex-row items-center gap-10">
@@ -339,7 +352,7 @@ function PublicTeamView({ members, mensagem }: { members: any[], mensagem: strin
           </div>
           <div className="flex-1">
             <span className="text-[10px] font-black uppercase text-[#fca311] tracking-widest">Governador Distrital</span>
-            <h2 className="text-4xl font-black text-[#004a99] mb-4">{gov ? `${gov.primeiro_nome} ${gov.apelido}` : 'Governador'}</h2>
+            <h2 className="text-4xl font-black text-[#002d5e] mb-4">{gov ? `${gov.primeiro_nome} ${gov.apelido}` : 'Governador'}</h2>
             <p className="border-l-4 border-orange-100 pl-6 italic text-gray-500 text-lg leading-relaxed mb-6">"{mensagem}"</p>
             {gov && (
               <div className="flex flex-wrap gap-4">
@@ -351,23 +364,24 @@ function PublicTeamView({ members, mensagem }: { members: any[], mensagem: strin
         </div>
       </section>
 
+      {/* GABINETE EXECUTIVO */}
       {gabinete.length > 0 && (
         <section className="space-y-6">
-          <h3 className="text-2xl font-black text-[#004a99] flex items-center gap-4">Gabinete Executivo <div className="h-[1px] flex-1 bg-gray-200"></div></h3>
+          <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">Gabinete Executivo <div className="h-[1px] flex-1 bg-gray-100"></div></h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {gabinete.map((m, i) => (
               <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-6 hover:shadow-md transition text-gray-900 font-medium">
-                 <div className="w-28 h-28 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 shadow-inner">
+                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 shadow-inner">
                    <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${m.primeiro_nome}`} className="w-full h-full object-cover" />
                  </div>
                  <div className="space-y-3 w-full">
                     <div>
-                       <h4 className="font-black text-[#004a99] text-xl leading-none mb-1">{m.primeiro_nome} {m.apelido}</h4>
+                       <h4 className="font-black text-[#002d5e] text-xl leading-none mb-1.5">{m.primeiro_nome} {m.apelido}</h4>
                        <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_distrital}</p>
                     </div>
-                    <div className="space-y-1 pt-2 border-t border-gray-50 text-gray-500">
-                      <div className="flex items-center gap-2 text-xs font-medium"><Mail size={14}/> {m.email}</div>
-                      <div className="flex items-center gap-2 text-xs font-medium"><Phone size={14}/> {m.telefone || 'N/A'}</div>
+                    <div className="flex gap-2 pt-2 border-t border-gray-50 text-gray-400">
+                      <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Mail size={14}/></div>
+                      {m.telefone && <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Phone size={14}/></div>}
                     </div>
                  </div>
               </div>
@@ -375,6 +389,55 @@ function PublicTeamView({ members, mensagem }: { members: any[], mensagem: strin
           </div>
         </section>
       )}
+
+      {/* NOVA SECÇÃO: COMISSÕES DISTRITAIS */}
+      {comissoes && comissoes.length > 0 && (
+        <section className="space-y-6 pt-4">
+          <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">
+            Comissões Distritais <div className="h-[1px] flex-1 bg-gray-100"></div>
+          </h3>
+          
+          <div className="space-y-4">
+            {comissoes.map((com, index) => {
+              const isAberta = comissaoAberta === com.id
+              const cor = coresIcones[index % coresIcones.length] // Alterna as cores da paleta
+
+              return (
+                <div key={com.id} className="bg-white rounded-[20px] border border-gray-100 shadow-sm overflow-hidden transition-all">
+                  <button 
+                    onClick={() => setComissaoAberta(isAberta ? null : com.id)}
+                    className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${cor.bg} ${cor.text}`}>
+                         <Layout size={24} /> {/* Placeholder de ícone genérico */}
+                      </div>
+                      <div className="text-left">
+                         <h4 className="font-bold text-[#002d5e] text-lg mb-1">{com.nome}</h4>
+                         <p className="text-xs text-gray-500 font-medium">
+                            {com.comissao_membros[0]?.count || 0} Membros • Clique para ver detalhes da comissão.
+                         </p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`text-gray-300 transition-transform duration-300 ${isAberta ? 'rotate-180' : ''}`} size={24} />
+                  </button>
+
+                  {/* CONTEÚDO EXPANDÍVEL (Acordeão) */}
+                  {isAberta && (
+                    <div className="px-6 pb-6 pt-2 border-t border-gray-50 bg-gray-50/50">
+                       <p className="text-sm text-gray-600 font-medium">
+                          Esta comissão tem atualmente <span className="font-bold">{com.comissao_membros[0]?.count || 0}</span> membros registados.
+                       </p>
+                       {/* Futuramente, podes mapear e listar os membros exatos desta comissão aqui */}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
     </div>
   )
 }
