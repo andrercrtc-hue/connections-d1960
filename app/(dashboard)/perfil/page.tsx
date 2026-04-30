@@ -1,10 +1,45 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Camera, CheckCircle, Save } from 'lucide-react'
+import { Camera, CheckCircle, Save, X } from 'lucide-react'
+import Cropper from 'react-easy-crop'
 
-// Definição do tipo para o TypeScript não reclamar
+// --- FUNÇÕES AUXILIARES DE RECORTE (Canvas) ---
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image()
+    image.addEventListener('load', () => resolve(image))
+    image.addEventListener('error', (error) => reject(error))
+    image.src = url
+  })
+
+async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob | null> {
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  canvas.width = pixelCrop.width
+  canvas.height = pixelCrop.height
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  )
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9)
+  })
+}
+
 type Perfil = {
   id: string
   primeiro_nome: string
@@ -28,6 +63,12 @@ export default function ProfilePage() {
     telefone: '',
     bio: ''
   })
+
+  // --- ESTADOS DO EDITOR DE IMAGEM ---
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -71,16 +112,34 @@ export default function ProfilePage() {
     setUpdating(false)
   }
 
-  async function handlePhotoUpload(event: any) {
+  // Ativado quando escolhes o ficheiro
+  const onFileChange = (e: any) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader()
+      reader.addEventListener('load', () => setImageToCrop(reader.result as string))
+      reader.readAsDataURL(e.target.files[0])
+    }
+  }
+
+  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }, [])
+
+  // Ativado quando clicas em "Confirmar" no Modal
+  const handleConfirmCrop = async () => {
     try {
       setUpdating(true)
-      const file = event.target.files[0]
-      if (!file) return
+      if (!imageToCrop || !croppedAreaPixels) return
 
-      const fileExt = file.name.split('.').pop()
-      const filePath = `${perfil?.id}/${Math.random()}.${fileExt}`
+      const croppedBlob = await getCroppedImg(imageToCrop, croppedAreaPixels)
+      if (!croppedBlob) return
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file)
+      const filePath = `${perfil?.id}/${Math.random()}.jpg`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, croppedBlob)
+
       if (uploadError) throw uploadError
 
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
@@ -88,9 +147,10 @@ export default function ProfilePage() {
       await supabase.from('perfis').update({ avatar_url: publicUrl }).eq('id', perfil?.id)
       
       setPerfil(prev => prev ? { ...prev, avatar_url: publicUrl } : null)
+      setImageToCrop(null) // Fecha o modal
       alert('Foto de perfil atualizada!')
     } catch (err: any) {
-      alert('Erro no upload: ' + err.message)
+      alert('Erro no processamento: ' + err.message)
     } finally {
       setUpdating(false)
     }
@@ -101,7 +161,6 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       
-      {/* CABEÇALHO DA PÁGINA */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800 mb-1">Perfil do Utilizador</h1>
         <p className="text-gray-500 text-sm">Gira a tua informação pessoal e preferências de conta no Rotary Nexus.</p>
@@ -111,7 +170,6 @@ export default function ProfilePage() {
         
         {/* COLUNA ESQUERDA: FOTO E STATUS */}
         <div className="space-y-6">
-          {/* Card da Foto */}
           <div className="bg-white p-10 rounded-[20px] border border-gray-100 shadow-sm text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#004a99] to-[#fca311]"></div>
             
@@ -125,17 +183,16 @@ export default function ProfilePage() {
               </div>
               <label className="absolute bottom-2 right-2 bg-[#004a99] text-white p-2.5 rounded-full cursor-pointer hover:scale-110 transition shadow-lg border-2 border-white">
                 <Camera size={16} />
-                <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+                <input type="file" className="hidden" accept="image/*" onChange={onFileChange} />
               </label>
             </div>
             
             <h4 className="font-bold text-[#004a99] text-[17px] mb-3">Alterar Foto de Perfil</h4>
             <p className="text-[11px] text-gray-500 leading-relaxed">
-              Utilize uma fotografia profissional com boa iluminação (JPEG ou PNG, máx. 5MB).
+              Utilize uma fotografia profissional. O editor permite ajustar o enquadramento circular.
             </p>
           </div>
 
-          {/* Card Membro Verificado */}
           <div className="bg-[#004a99] p-8 rounded-[20px] text-white shadow-md relative overflow-hidden group">
              <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform">
                 <CheckCircle size={120} />
@@ -192,9 +249,6 @@ export default function ProfilePage() {
                 value={perfil?.email}
                 disabled
               />
-              <p className="text-[10px] font-medium text-gray-400 mt-1">
-                O e-mail de conta não pode ser alterado diretamente por questões de segurança.
-              </p>
             </div>
 
             <div className="space-y-2 mb-10">
@@ -225,8 +279,64 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-
       </div>
+
+      {/* --- MODAL DO EDITOR DE IMAGEM --- */}
+      {imageToCrop && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-black text-[#002d5e]">Ajustar Fotografia</h3>
+              <button onClick={() => setImageToCrop(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+
+            <div className="relative h-80 w-full bg-gray-900">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center block">Zoom</label>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#fca311]"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setImageToCrop(null)}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-sm text-gray-500 hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleConfirmCrop}
+                  disabled={updating}
+                  className="flex-1 bg-[#fca311] text-white py-3.5 rounded-xl font-bold text-sm shadow-lg hover:bg-[#e8960f] transition disabled:opacity-50"
+                >
+                  {updating ? 'A processar...' : 'Confirmar Recorte'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
