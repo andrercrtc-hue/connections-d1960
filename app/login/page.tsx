@@ -132,10 +132,12 @@ export default function LoginPage() {
           </div>
 
           {/* Botão Registar */}
-          <button className="w-full bg-[#ffead1] text-[#854d0e] py-4 rounded-xl font-bold text-lg hover:bg-[#fed7aa] transition-all flex items-center justify-center gap-3">
-            <UserPlus size={20} />
-            Registar
-          </button>
+          <button 
+            onClick={() => router.push('/registar')} // <--- Adiciona isto
+            className="w-full bg-[#fce8d5] text-[#8b5e34] py-3.5 rounded-xl font-bold text-sm hover:bg-[#fbdcb9] transition flex items-center justify-center gap-2"
+            >
+              <UserPlus size={18} /> Registar
+            </button>
 
           {/* Footer do Login */}
           <div className="mt-12 text-center">
