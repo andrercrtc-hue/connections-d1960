@@ -1,4 +1,5 @@
 // app/(dashboard)/layout.tsx
+'use client'
 import { Sidebar } from '../menu-components/sidebar'
 import { TopNav } from '../menu-components/TopNav'
 
@@ -9,15 +10,15 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
-      {/* Sidebar fixa à esquerda */}
+      {/* Sidebar fixa à esquerda com largura de 64 (w-64) */}
       <Sidebar />
 
-      {/* Área de conteúdo à direita da sidebar */}
+      {/* Área de conteúdo que compensa a largura da sidebar (ml-64) */}
       <div className="flex-1 ml-64 flex flex-col">
-        {/* TopNav fixa no topo do conteúdo */}
+        {/* Barra superior fixa */}
         <TopNav />
 
-        {/* Onde o conteúdo das páginas (page.tsx) será injetado */}
+        {/* Onde as tuas páginas (dashboard, perfil, etc) vão aparecer */}
         <main className="p-10 flex-1">
           {children}
         </main>
