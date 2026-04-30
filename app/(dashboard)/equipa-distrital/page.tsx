@@ -190,6 +190,20 @@ export default function EquipaDistrital() {
     if (!error) loadData()
   }
 
+  async function apagarComissao(idComissao: string, nomeComissao: string) {
+      if (!confirm(`Tem a certeza que deseja apagar a comissão "${nomeComissao}"? Esta ação não pode ser desfeita e removerá todos os membros associados.`)) return
+      
+      // O Supabase irá apagar a comissão. 
+      // Se a tua tabela comissao_membros estiver bem configurada no SQL (com ON DELETE CASCADE), os membros dessa comissão também são apagados dessa lista.
+      const { error } = await supabase.from('comissoes').delete().eq('id', idComissao)
+      
+      if (!error) {
+        loadData() // Recarrega os dados para a comissão desaparecer do ecrã
+      } else {
+        alert("Erro ao apagar comissão: " + error.message)
+      }
+    }
+
   async function handleSaveMensagem() {
     if (!governador?.id) return
     setSavingMsg(true)
@@ -324,8 +338,21 @@ export default function EquipaDistrital() {
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{com.comissao_membros[0]?.count || 0} Membros Registados</p>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 text-gray-400 hover:text-blue-500"><Edit2 size={14}/></button>
-                        <button className="p-2 text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                        {/* LÁPIS: Em vez de um <button>, usamos um <Link> do Next.js para navegar para a página de edição usando o ID da comissão */}
+                        <Link 
+                          href={`/equipa-distrital/comissoes/${com.id}`} 
+                          className="p-2 text-gray-400 hover:text-blue-500 transition cursor-pointer"
+                        >
+                          <Edit2 size={14}/>
+                        </Link>
+                        
+                        {/* LIXO: Chama a função que criámos no Passo 1 */}
+                        <button 
+                          onClick={() => apagarComissao(com.id, com.nome)} 
+                          className="p-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
                       </div>
                     </div>
                   ))}
