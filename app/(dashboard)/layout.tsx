@@ -1,7 +1,7 @@
 // app/(dashboard)/layout.tsx
 'use client'
-import { Sidebar } from '../menu-components/sidebar'
-import { TopNav } from '../menu-components/TopNav'
+import { Sidebar } from './menu-components/sidebar'
+import { TopNav } from './menu-components/TopNav'
 
 export default function DashboardLayout({
   children,
