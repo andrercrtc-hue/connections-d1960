@@ -495,9 +495,17 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
                        <h4 className="font-black text-[#002d5e] text-xl leading-none mb-1.5">{m.primeiro_nome} {m.apelido}</h4>
                        <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_distrital}</p>
                     </div>
-                    <div className="flex gap-2 pt-2 border-t border-gray-50 text-gray-400">
-                      <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Mail size={14}/></div>
-                      {m.telefone && <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Phone size={14}/></div>}
+                    <div className="space-y-2 pt-4 border-t border-gray-50 text-gray-500 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} className="text-[#004a99]" />
+                        <span>{m.email || 'Sem email'}</span>
+                      </div>
+                      {m.telefone && (
+                        <div className="flex items-center gap-2">
+                          <Phone size={14} className="text-[#004a99]" />
+                          <span>{m.telefone}</span>
+                        </div>
+                      )}
                     </div>
                  </div>
               </div>
