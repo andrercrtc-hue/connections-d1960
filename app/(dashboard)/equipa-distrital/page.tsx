@@ -45,23 +45,32 @@ export default function EquipaDistrital() {
       setIsAdmin(temAcesso)
       if (!temAcesso) setViewMode('user')
     }
-
-    // Carregar Perfis
+    // 1. CARREGAR PERFIS COM DADOS DE COMISSÕES
     const { data: perfis } = await supabase
       .from('perfis')
-      .select('*')
+      .select(`
+        *,
+        comissao_membros (
+          cargo_na_comissao,
+          comissoes (
+            nome
+          )
+        )
+      `)
       .order('ordem_equipa_distrital', { ascending: true })
       .order('primeiro_nome', { ascending: true })
 
     if (perfis) {
       setTodosPerfis(perfis)
-      const soEquipa = perfis.filter(m => 
-        m.cargo_distrital && m.cargo_distrital.toLowerCase() !== 'não membro'
-      )
-      setEquipaFiltrada(soEquipa)
-      const govData = soEquipa.find(m => m.cargo_distrital?.toLowerCase().includes('governador'))
-      if (govData) setMensagemGov(govData.bio || "Servir para transformar.")
-    }
+      
+      // 2. Lógica de Filtragem: Tem cargo distrital OU está numa comissão
+      const soEquipa = perfis.filter(m => {
+        const temCargoDistrital = m.cargo_distrital && m.cargo_distrital.toLowerCase() !== 'não membro';
+        const estaEmComissao = m.comissao_membros && m.comissao_membros.length > 0;
+        return temCargoDistrital || estaEmComissao;
+      })
+    setEquipaFiltrada(soEquipa)
+  }
 
     // Carregar Comissões (Dinâmico)
     const { data: coms } = await supabase
@@ -254,7 +263,7 @@ export default function EquipaDistrital() {
           {/* 4. TABELA DE LISTAGEM */}
           <section className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-gray-50 flex justify-between items-center">
-              <h3 className="text-lg font-black text-[#004a99]">Listagem da Equipa Distrital</h3>
+              <h3 className="text-lg font-black text-[#004a99]">Equipa Distrital</h3>
               <button onClick={exportEquipeToExcel} className="flex items-center gap-2 bg-[#00a859] text-white px-5 py-2.5 rounded-xl font-black text-xs hover:bg-green-700 transition shadow-md"><FileDown size={16} /> Exportar</button>
             </div>
             <div className="overflow-x-auto">
@@ -264,6 +273,7 @@ export default function EquipaDistrital() {
                     <th className="px-8 py-4 w-32">Ordem</th>
                     <th className="px-8 py-4">Membro</th>
                     <th className="px-8 py-4">Função Distrital</th>
+                    <th className="px-8 py-4">Comissão</th>
                     <th className="px-8 py-4 text-right">Ações</th>
                   </tr>
                 </thead>
@@ -297,13 +307,33 @@ export default function EquipaDistrital() {
                            <span className="font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
                         </div>
                       </td>
+                      {/* FUNÇÃO DISTRITAL (Ou cargo na comissão se não tiver distrital) */}
                       <td className="px-8 py-4">
                         {editingId === m.id ? (
-                          <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-bold outline-none" />
+                          <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-medium text-gray-900 outline-none w-full" />
                         ) : (
-                          <span className="bg-blue-50 text-[#004a99] px-3 py-1.5 rounded-full text-[10px] font-black uppercase">{m.cargo_distrital}</span>
+                          <span className="bg-blue-50 text-[#004a99] px-3 py-1.5 rounded-full text-[10px] font-black uppercase">
+                            {m.cargo_distrital && m.cargo_distrital !== 'Não membro' 
+                              ? m.cargo_distrital 
+                              : m.comissao_membros?.[0]?.cargo_na_comissao || '-'}
+                          </span>
                         )}
                       </td>
+                      
+                      {/* NOVA COLUNA: NOME DA COMISSÃO */}
+                      <td className="px-8 py-4 text-gray-500 font-bold uppercase text-[10px] tracking-tight">
+                         {m.comissao_membros?.[0]?.comissoes?.nome || '-'}
+                      </td>
+                      
+                      {/* ACÇÕES (Mantém as que já tinhas) */}
+                      <td className="px-8 py-4 text-right">
+                        {editingId === m.id ? (
+                          <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
+                        ) : (
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/><Trash2 onClick={() => removerDaEquipa(m.id)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/></div>
+                        )}
+                      </td>
+                      
                       <td className="px-8 py-4 text-right">
                         {editingId === m.id ? (
                           <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
