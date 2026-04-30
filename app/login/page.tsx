@@ -93,7 +93,8 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between mb-2">
                 <label className="text-sm font-black text-gray-900 uppercase tracking-widest">Palavra-passe</label>
-                <Link href="/forgot-password" size={14} className="text-sm font-black text-[#003d7a] hover:underline">
+                {/* CORREÇÃO DO LINK DE ESQUECEU A PASSWORD AQUI */}
+                <Link href="/forgot-password" className="text-sm font-black text-[#003d7a] hover:underline">
                   Esqueceu-se?
                 </Link>
               </div>
@@ -155,10 +156,11 @@ export default function LoginPage() {
               Precisa de ajuda? <a href="#" className="text-[#004a99] font-black hover:underline">Contacte o Apoio Técnico</a>
             </p>
             
+            {/* CORREÇÃO DAS PROPS NOS ÍCONES AQUI */}
             <div className="flex justify-center gap-8 text-gray-900">
-              <Globe size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Idioma" />
-              <ShieldCheck size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Segurança" />
-              <HelpCircle size={22} className="hover:text-gray-600 cursor-pointer transition-colors" title="Ajuda" />
+              <Globe size={22} className="hover:text-gray-600 cursor-pointer transition-colors" />
+              <ShieldCheck size={22} className="hover:text-gray-600 cursor-pointer transition-colors" />
+              <HelpCircle size={22} className="hover:text-gray-600 cursor-pointer transition-colors" />
             </div>
           </div>
         </div>
