@@ -9,9 +9,11 @@ import {
   TrendingUp, Home, ClipboardList
 } from 'lucide-react'
 
+// 1. Adicionado avatar_url ao Type
 type Perfil = {
   nome: string
   cargo: string
+  avatar_url?: string 
 }
 
 export default function Dashboard() {
@@ -24,9 +26,10 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
+      // 2. Adicionado avatar_url à seleção da Query
       const { data } = await supabase
         .from('perfis')
-        .select('nome, cargo')
+        .select('nome, cargo, avatar_url')
         .eq('id', user.id)
         .single()
 
@@ -108,19 +111,22 @@ export default function Dashboard() {
                 <p className="text-sm font-bold text-gray-800 leading-tight">{perfil?.nome || 'Utilizador'}</p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{perfil?.cargo === 'governador' ? 'Governador Distrital' : 'Membro de Clube'}</p>
               </div>
+              {/* 3. Imagem dinâmica com fallback para UI Avatars */}
               <div className="w-10 h-10 bg-blue-100 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                 <img src="https://ui-avatars.com/api/?name=Andre+Silva&background=004a99&color=fff" alt="Perfil" />
+                 <img 
+                    src={perfil?.avatar_url || `https://ui-avatars.com/api/?name=${perfil?.nome || 'User'}&background=004a99&color=fff`} 
+                    alt="Perfil" 
+                    className="w-full h-full object-cover"
+                 />
               </div>
             </div>
           </div>
         </header>
 
-        {/* HERO SECTION */}
+        {/* O resto do código mantém-se exatamente igual... */}
         <section className="px-10 py-8">
           <div className="bg-[#003d7a] rounded-[32px] p-12 text-white relative overflow-hidden flex justify-between items-center min-h-[400px]">
-            {/* Grelha Decorativa no Fundo */}
               <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
-            
             <div className="relative z-10 max-w-xl">
               <span className="bg-[#fca311] text-white text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest mb-6 inline-block">
                 Distrito 1960
@@ -140,15 +146,12 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-
-            {/* Imagem de Destaque */}
             <div className="relative z-10 hidden xl:block w-[450px] h-[350px] rounded-[24px] overflow-hidden border-8 border-white/10 shadow-2xl rotate-2">
                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80" className="w-full h-full object-cover" alt="Equipa" />
             </div>
           </div>
         </section>
 
-        {/* ESTATÍSTICAS */}
         <section className="px-10 grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <StatCard label="Clubes" value="74" trend="+2 este mês" icon={<Home className="text-blue-400 opacity-20" size={48}/>} />
           <StatCard label="Membros Ativos" value="2,150" trend="+12% anual" icon={<Users className="text-orange-400 opacity-20" size={48}/>} />
@@ -156,10 +159,7 @@ export default function Dashboard() {
           <StatCard label="Anúncios" value="5" trend="Pendentes de revisão" icon={<FileText className="text-gray-400 opacity-20" size={48}/>} />
         </section>
 
-        {/* COLUNAS DE CONTEÚDO */}
         <section className="px-10 grid grid-cols-1 lg:grid-cols-3 gap-10 pb-20">
-          
-          {/* Calendário Distrital */}
           <div className="lg:col-span-2">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-black text-gray-800 flex items-center gap-3">
@@ -167,7 +167,6 @@ export default function Dashboard() {
               </h3>
               <a href="#" className="text-sm font-bold text-[#004a99] hover:underline">Ver todo o calendário</a>
             </div>
-            
             <div className="bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm">
               <EventItem date="15 JUN" title="Conferência Distrital de Liderança" loc="Fundação Calouste Gulbenkian, Lisboa" tag="EVENTO VIP" time="09:00 - 18:00" />
               <EventItem date="22 JUN" title="Webinar: Projetos de Impacto Comunitário" loc="Plataforma Zoom Distrital" />
@@ -175,16 +174,13 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Anúncios */}
           <div className="space-y-8">
             <h3 className="text-2xl font-black text-gray-800 flex items-center gap-3">
               <Bell className="text-[#004a99]" /> Anúncios
             </h3>
-            
             <div className="space-y-6">
               <NewsCard category="IMPORTANTE" time="Há 2 horas" title="Relatório Anual de Sustentabilidade" desc="Caros companheiros, o prazo para submissão dos relatórios de..." color="border-l-[#8b5e34]" />
               <NewsCard category="SAÚDE" time="Ontem" title="Campanha Polio Plus: Resultados" desc="Alcançámos 95% do objetivo de angariação para este trimestre..." color="border-l-red-500" />
-              
               <div className="bg-[#003d7a] rounded-[24px] p-6 text-white relative overflow-hidden group">
                 <h4 className="text-xl font-bold mb-2 relative z-10">Desafio do Governador</h4>
                 <p className="text-sm text-blue-200 mb-6 relative z-10">Qual clube terá o maior crescimento líquido de sócios este semestre?</p>
@@ -196,14 +192,12 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
-
       </main>
     </div>
   )
 }
 
-/* COMPONENTES AUXILIARES */
-
+/* COMPONENTES AUXILIARES (Mantidos exatamente iguais) */
 function SidebarItem({ icon, label, active = false }: any) {
   return (
     <a href="#" className={`flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-sm transition-all ${active ? 'bg-blue-50 text-[#004a99] border-l-4 border-[#004a99]' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
