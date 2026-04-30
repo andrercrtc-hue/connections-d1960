@@ -215,6 +215,9 @@ export default function EquipaDistrital() {
                       <ul className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
                         {todosPerfis.filter(m => `${m.primeiro_nome} ${m.apelido}`.toLowerCase().includes(searchTerm.toLowerCase())).map(m => (
                           <li key={m.id} onClick={() => { setSelectedMember(m); setSearchTerm(`${m.primeiro_nome} ${m.apelido}`); setShowDropdown(false); }} className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                              <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${m.primeiro_nome || ''} ${m.apelido || ''}`.trim())}&background=ffffff&color=2f3e65`} alt={`${m.primeiro_nome} ${m.apelido}`} className="w-full h-full object-cover" />
+                            </div>
                             <span className="text-sm font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
                           </li>
                         ))}
@@ -286,7 +289,14 @@ export default function EquipaDistrital() {
                            />
                         </div>
                       </td>
-                      <td className="px-8 py-4 font-bold">{m.primeiro_nome} {m.apelido}</td>
+                      <td className="px-8 py-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                              <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${m.primeiro_nome}`} className="w-full h-full object-cover" />
+                           </div>
+                           <span className="font-bold text-gray-900">{m.primeiro_nome} {m.apelido}</span>
+                        </div>
+                      </td>
                       <td className="px-8 py-4">
                         {editingId === m.id ? (
                           <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-bold outline-none" />
