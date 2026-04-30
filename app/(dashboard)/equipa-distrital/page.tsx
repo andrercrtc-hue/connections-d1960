@@ -142,8 +142,48 @@ export default function EquipaDistrital() {
 
   // MANTIDAS AS TUAS FUNÇÕES DE ORDENAÇÃO
   async function updateOrdemManual(id: string, novaOrdem: number) {
-    const { error } = await supabase.from('perfis').update({ ordem_equipa_distrital: novaOrdem }).eq('id', id)
-    if (!error) loadData()
+    if (isNaN(novaOrdem) || novaOrdem < 1) return
+
+    const membroAtual = equipaFiltrada.find((m) => m.id === id)
+    if (!membroAtual) return
+
+    const antigaOrdem = membroAtual.ordem_equipa_distrital || 0
+    if (novaOrdem === antigaOrdem) return
+
+    const distritais = equipaFiltrada
+      .filter((m) => m.tipo === 'distrital')
+      .map((m) => ({ id: m.id, ordem: m.ordem_equipa_distrital || 99 }))
+
+    const updates: Array<{ id: string; ordem_equipa_distrital: number }> = []
+
+    if (novaOrdem < antigaOrdem) {
+      distritais.forEach((m) => {
+        if (m.ordem >= novaOrdem && m.ordem < antigaOrdem) {
+          updates.push({ id: m.id, ordem_equipa_distrital: m.ordem + 1 })
+        }
+      })
+    } else {
+      distritais.forEach((m) => {
+        if (m.ordem <= novaOrdem && m.ordem > antigaOrdem) {
+          updates.push({ id: m.id, ordem_equipa_distrital: m.ordem - 1 })
+        }
+      })
+    }
+
+    updates.push({ id, ordem_equipa_distrital: novaOrdem })
+
+    const results = await Promise.all(
+      updates.map((item) =>
+        supabase.from('perfis').update({ ordem_equipa_distrital: item.ordem_equipa_distrital }).eq('id', item.id)
+      )
+    )
+
+    if (results.some((result) => result.error)) {
+      alert('Erro ao atualizar a ordem. Tente novamente.')
+      return
+    }
+
+    loadData()
   }
 
   async function alterarOrdemSeta(membro: any, direcao: 'subir' | 'descer') {
@@ -417,28 +457,13 @@ export default function EquipaDistrital() {
                       {/* COLUNA ORDEM (Igual) */}
                       <td className="px-8 py-4 text-center">
                         {m.tipo === 'distrital' ? (
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-col">
-                              <button 
-                                onClick={() => alterarOrdemSeta(m, 'subir')} 
-                                className="text-gray-400 hover:text-blue-600 transition-colors"
-                              >
-                                <ChevronUp size={14}/>
-                              </button>
-                              <button 
-                                onClick={() => alterarOrdemSeta(m, 'descer')} 
-                                className="text-gray-400 hover:text-blue-600 transition-colors"
-                              >
-                                <ChevronDown size={14}/>
-                              </button>
-                            </div>
-                            <input 
-                              type="number" 
-                              value={m.ordem_equipa_distrital} 
-                              onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))} 
-                              className="w-12 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none focus:ring-1 focus:ring-blue-400" 
-                            />
-                          </div>
+                          <input 
+                            type="number" 
+                            min={1}
+                            value={m.ordem_equipa_distrital || ''} 
+                            onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))} 
+                            className="w-16 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none focus:ring-1 focus:ring-blue-400" 
+                          />
                         ) : (
                           <span className="text-gray-300 text-xs font-bold tracking-widest">—</span>
                         )}
@@ -565,9 +590,17 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
                        <h4 className="font-black text-[#002d5e] text-xl leading-none mb-1.5">{m.primeiro_nome} {m.apelido}</h4>
                        <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_distrital}</p>
                     </div>
-                    <div className="flex gap-2 pt-2 border-t border-gray-50 text-gray-400">
-                      <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Mail size={14}/></div>
-                      {m.telefone && <div className="p-1.5 bg-gray-50 rounded-md hover:text-[#004a99] transition cursor-pointer"><Phone size={14}/></div>}
+                    <div className="space-y-2 pt-2 border-t border-gray-50 text-gray-500 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} className="text-[#004a99]" />
+                        <span>{m.email || 'Sem email'}</span>
+                      </div>
+                      {m.telefone && (
+                        <div className="flex items-center gap-2">
+                          <Phone size={14} className="text-[#004a99]" />
+                          <span>{m.telefone}</span>
+                        </div>
+                      )}
                     </div>
                  </div>
               </div>
