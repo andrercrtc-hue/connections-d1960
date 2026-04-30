@@ -45,7 +45,8 @@ export default function EquipaDistrital() {
       setIsAdmin(temAcesso)
       if (!temAcesso) setViewMode('user')
     }
-    // 1. CARREGAR PERFIS COM DADOS DE COMISSÕES
+
+    // 1. Carregar Perfis com dados de comissões
     const { data: perfis } = await supabase
       .from('perfis')
       .select(`
@@ -62,29 +63,30 @@ export default function EquipaDistrital() {
 
     if (perfis) {
       setTodosPerfis(perfis);
-
       const listaExpandida: any[] = [];
 
       perfis.forEach(perfil => {
-        // 1. Verificar se tem cargo distrital (ex: Governador, Tesoureiro)
+        // A. Cargos Distritais (Gabinete Executivo)
         if (perfil.cargo_distrital && perfil.cargo_distrital.toLowerCase() !== 'não membro') {
-          listaExpandida.push({
-            ...perfil,
-            id_unico: `${perfil.id}-distrital`, // Chave única para o React não se baralhar
-            cargo_exibir: perfil.cargo_distrital,
-            comissao_exibir: '-',
-            tipo: 'distrital'
+          const cargos = perfil.cargo_distrital.split(',').map((c: string) => c.trim());
+          
+          cargos.forEach((cargo: string, idx: number) => {
+            listaExpandida.push({
+              ...perfil,
+              id_unico: `${perfil.id}-distrital-${idx}`,
+              cargo_exibir: cargo,
+              comissao_exibir: '-',
+              tipo: 'distrital'
+            });
           });
         }
 
-        // 2. Verificar se está em comissões e criar uma linha para cada uma
-        const temCargoDistrital = perfil.cargo_distrital && perfil.cargo_distrital.toLowerCase() !== 'não membro'
-
-        if (!temCargoDistrital && perfil.comissao_membros && perfil.comissao_membros.length > 0) {
-          perfil.comissao_membros.forEach((cm: any) => {
+        // B. Cargos em Comissões (Equipa Distrital)
+        if (perfil.comissao_membros && perfil.comissao_membros.length > 0) {
+          perfil.comissao_membros.forEach((cm: any, idx: number) => {
             listaExpandida.push({
               ...perfil,
-              id_unico: `${perfil.id}-comissao-${cm.comissoes?.nome}`,
+              id_unico: `${perfil.id}-comissao-${idx}`,
               cargo_exibir: cm.cargo_na_comissao,
               comissao_exibir: cm.comissoes?.nome || '-',
               tipo: 'comissao'
@@ -93,22 +95,20 @@ export default function EquipaDistrital() {
         }
       });
 
-      // Ordenar a lista final pela coluna de ordem
+      // Ordenação final
       const listaOrdenada = listaExpandida.sort((a, b) => 
         (a.ordem_equipa_distrital || 99) - (b.ordem_equipa_distrital || 99)
       );
 
       setEquipaFiltrada(listaOrdenada);
 
-      // Manter a lógica do governador para a mensagem
-      const gov = listaOrdenada.find(m => m.cargo_exibir?.toLowerCase().includes('governador'));
+      // Lógica do Governador para a mensagem
+      const gov = listaOrdenada.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase().includes('governador'));
       if (gov) setMensagemGov(gov.bio || "Servir para transformar.");
     }
 
-    // Carregar Comissões (Dinâmico)
-    const { data: coms } = await supabase
-      .from('comissoes')
-      .select('*, comissao_membros(count)')
+    // Carregar Comissões para os Stats
+    const { data: coms } = await supabase.from('comissoes').select('*, comissao_membros(count)')
     if (coms) setComissoes(coms)
 
     setLoading(false)
@@ -314,19 +314,33 @@ export default function EquipaDistrital() {
                   {equipaFiltrada.map((m) => (
                     <tr key={m.id_unico} className="hover:bg-gray-50/50 transition group text-gray-900 font-medium">
                       {/* COLUNA ORDEM (Igual) */}
-                      <td className="px-8 py-4">
-                        <div className="flex items-center gap-2">
-                           <div className="flex flex-col">
-                              <button onClick={() => alterarOrdemSeta(m, 'subir')} className="text-gray-400 hover:text-blue-600"><ChevronUp size={14}/></button>
-                              <button onClick={() => alterarOrdemSeta(m, 'descer')} className="text-gray-400 hover:text-blue-600"><ChevronDown size={14}/></button>
-                           </div>
-                           <input
-                              type="number"
-                              value={m.ordem_equipa_distrital}
-                              onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))}
-                              className="w-12 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none"
-                           />
-                        </div>
+                      <td className="px-8 py-4 text-center">
+                        {m.tipo === 'distrital' ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col">
+                              <button 
+                                onClick={() => alterarOrdemSeta(m, 'subir')} 
+                                className="text-gray-400 hover:text-blue-600 transition-colors"
+                              >
+                                <ChevronUp size={14}/>
+                              </button>
+                              <button 
+                                onClick={() => alterarOrdemSeta(m, 'descer')} 
+                                className="text-gray-400 hover:text-blue-600 transition-colors"
+                              >
+                                <ChevronDown size={14}/>
+                              </button>
+                            </div>
+                            <input 
+                              type="number" 
+                              value={m.ordem_equipa_distrital} 
+                              onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))} 
+                              className="w-12 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none focus:ring-1 focus:ring-blue-400" 
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-gray-300 text-xs font-bold tracking-widest">—</span>
+                        )}
                       </td>
 
                       {/* COLUNA MEMBRO (Com imagem) */}
@@ -378,8 +392,14 @@ export default function EquipaDistrital() {
 }
 
 function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mensagem: string, comissoes: any[] }) {
-  const gov = members.find(m => m.cargo_distrital?.toLowerCase().includes('governador'))
-  const gabinete = members.filter(m => !m.cargo_distrital?.toLowerCase().includes('governador'))
+  // O Governador é o destaque
+  const gov = members.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase().includes('governador'));
+  
+  // O Gabinete são todos os 'distritais' exceto o Governador
+  const gabinete = members.filter(m => 
+    m.tipo === 'distrital' && 
+    !m.cargo_exibir?.toLowerCase().includes('governador')
+  );
   
   // Estado para controlar qual comissão está aberta (Acordeão)
   const [comissaoAberta, setComissaoAberta] = useState<string | null>(null)
