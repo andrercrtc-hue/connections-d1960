@@ -215,22 +215,36 @@ export default function OMeuClube() {
                   />
                 </div>
                 <div>
-                  <h4 className="font-black text-[#002d5e] leading-tight">{membro.nome_completo}</h4>
-                  {perfil?.id !== membro.id ? (
-                    <select
-                      value={membro.cargo_clube || 'Membro'}
-                      onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
-                      className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all cursor-pointer"
-                    >
-                      <option value="Membro">Membro</option>
-                      <option value="Presidente">Presidente</option>
-                      <option value="Secretário">Secretário</option>
-                      <option value="Tesoureiro">Tesoureiro</option>
-                      <option value="Vice-Presidente">Vice-Presidente</option>
-                      <option value="Protocolo">Protocolo</option>
-                    </select>
+                  {/* Ajuste para os nomes reais da tua tabela */}
+                  <h4 className="font-black text-[#002d5e] leading-tight">
+                    {membro.primeiro_nome} {membro.apelido}
+                  </h4>
+                  
+                  {/* LÓGICA DE GESTÃO: Só quem é nível 2 (Presidente/Secretário/Tesoureiro) vê os comandos */}
+                  {perfil?.nivel >= 2 ? (
+                    <div className="mt-1">
+                      {perfil.id !== membro.id ? (
+                        <select
+                          value={membro.cargo_clube || 'Membro'}
+                          onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
+                          className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
+                        >
+                          <option value="Membro">Membro</option>
+                          <option value="Presidente">Presidente</option>
+                          <option value="Secretário">Secretário</option>
+                          <option value="Tesoureiro">Tesoureiro</option>
+                          <option value="Vice-Presidente">Vice-Presidente</option>
+                          <option value="Protocolo">Protocolo</option>
+                        </select>
+                      ) : (
+                        <span className="text-[10px] font-bold text-orange-500 uppercase">O teu cargo</span>
+                      )}
+                    </div>
                   ) : (
-                    <span className="text-[9px] text-gray-300 font-bold italic">Tu próprio</span>
+                    /* O que o utilizador comum vê */
+                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                      {membro.cargo_clube || 'Membro'}
+                    </p>
                   )}
                   <p className="text-[10px] text-gray-400">2025-2026</p>
                 </div>
