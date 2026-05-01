@@ -67,49 +67,56 @@ export default function PaginaDinamicaClube() {
 
   useEffect(() => {
     async function carregarDados() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      // Primeiro: Carregar o perfil do utilizador logado para saber quem ele é
-      const { data: perfilData } = await supabase
-        .from('perfis')
-        .select('*, cargos_clube_config(nivel_acesso)')
-        .eq('id', user.id)
-        .single()
-
-      if (perfilData) {
-        setPerfil({
-          ...perfilData,
-          nivel: perfilData.cargos_clube_config?.nivel_acesso || 1
-        })
-
-        // SEGUNDO: Carregar o CLUBE específico do URL (não o do utilizador)
+      // 1. Carregar primeiro o que é PÚBLICO (funciona para todos)
+      if (clubeIdUrl) {
+        // Carregar Clube
         const { data: clubeData } = await supabase
-          .from('clubes')
+          .from('clubs')
           .select('*')
           .eq('id', clubeIdUrl)
-          .single()
-        
-        setClube(clubeData)
+          .single();
+        if (clubeData) setClube(clubeData);
 
-        // TERCEIRO: Carregar equipa e anúncios deste clube do URL
+        // Carregar Equipa
         const { data: equipaData } = await supabase
           .from('perfis')
           .select('*')
           .eq('clube_id', clubeIdUrl)
-          .not('cargo_clube', 'is', null)
-        
-        if (equipaData) setEquipa(equipaData)
+          .not('cargo_clube', 'is', null);
+        if (equipaData) setEquipa(equipaData);
 
-        const { data: anunciosData } = await supabase
+        // Carregar Anúncios (Verifica se a coluna é 'created_at' ou 'criado_at')
+        const { data: anunciosData, error: errAnuncios } = await supabase
           .from('anuncios')
           .select('*')
           .eq('clube_id', clubeIdUrl)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }); // Se der erro, tenta 'criado_at'
 
-        if (anunciosData) setAnuncios(anunciosData)
+        if (anunciosData) setAnuncios(anunciosData);
+        if (errAnuncios) console.error("Erro nos anúncios:", errAnuncios);
       }
-      setLoading(false)
+
+      // 2. Só depois carregamos o PERFIL (se o utilizador estiver logado)
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: perfilData } = await supabase
+          .from('perfis')
+          .select('*, cargos_clube_config(nivel_acesso)')
+          .eq('id', user.id)
+          .single();
+
+        if (perfilData) {
+          setPerfil({
+            ...perfilData,
+            nivel: perfilData.cargos_clube_config?.nivel_acesso || 1
+          });
+        }
+      }
+
+      // 3. O setLoading(false) tem de estar AQUI, fora de qualquer 'if', 
+      // para a página carregar sempre, mesmo para visitantes.
+      setLoading(false);
     }
     carregarDados()
   }, [clubeIdUrl]) // Recarrega se o ID do URL mudar

@@ -128,7 +128,7 @@ export default function ComunicacaoClube() {
                   type="text"
                   required
                   placeholder="Ex: Próxima Assembleia"
-                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:bg-gray-200 focus:ring-2 focus:ring-blue-100 outline-none transition-colors duration-200"
+                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
                   onChange={(e) => setForm({...form, titulo: e.target.value})}
                 />
               </div>
@@ -138,7 +138,7 @@ export default function ComunicacaoClube() {
                   <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Prioridade</label>
                   <select 
                     value={form.tipo}
-                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm outline-none cursor-pointer font-bold text-[#002d5e] focus:bg-gray-200 focus:ring-2 focus:ring-blue-100 transition-colors duration-200"
+                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
                     onChange={(e) => setForm({...form, tipo: e.target.value})}
                   >
                     <option value="normal">Normal</option>
@@ -149,7 +149,7 @@ export default function ComunicacaoClube() {
                   <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Expira em</label>
                   <input 
                     type="date"
-                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm outline-none focus:bg-gray-200 focus:ring-2 focus:ring-blue-100 transition-colors duration-200"
+                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
                     onChange={(e) => setForm({...form, data_expiracao: e.target.value})}
                   />
                 </div>
@@ -161,7 +161,7 @@ export default function ComunicacaoClube() {
                   rows={6}
                   required
                   placeholder="Escreve aqui os detalhes..."
-                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:bg-gray-200 focus:ring-2 focus:ring-blue-100 outline-none resize-none transition-colors duration-200"
+                   className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
                   onChange={(e) => setForm({...form, conteudo: e.target.value})}
                 />
               </div>
@@ -226,7 +226,7 @@ export default function ComunicacaoClube() {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <button 
-                          onClick={() => apagarAnuncio(anuncio.id)}
+                          onClick={() => apagarAnuncio(anuncio.id)} // Garante que passas o ID do anúncio aqui
                           className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                         >
                           <Trash2 size={18} />
