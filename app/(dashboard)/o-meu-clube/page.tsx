@@ -237,7 +237,16 @@ export default function OMeuClube() {
                           <option value="Protocolo">Protocolo</option>
                         </select>
                       ) : (
-                        <span className="text-[10px] font-bold text-orange-500 uppercase">O teu cargo</span>
+                        <div className="flex flex-col">
+                          {/* Mostra o teu cargo real (Presidente) */}
+                          <span className="text-[10px] font-bold text-blue-600 uppercase">
+                            {membro.cargo_clube}
+                          </span>
+                          {/* Mantém o aviso que és tu */}
+                          <span className="text-[8px] font-black text-orange-500 uppercase italic">
+                            O teu cargo
+                          </span>
+                        </div>
                       )}
                     </div>
                   ) : (
