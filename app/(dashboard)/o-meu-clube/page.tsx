@@ -82,11 +82,24 @@ export default function OMeuClube() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/60 to-transparent"></div>
         </div>
 
-        <div className="relative z-10 space-y-3 text-white">
-          <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-            {clube?.tipo === 'Rotaract' ? 'Distrito 1960 • Rotaract' : 'Distrito 1960 • Rotary'}
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight">{clube?.nome}</h1>
+        <div className="relative z-10 space-y-3 text-white w-full">
+          <div className="flex justify-between items-end w-full">
+            <div className="space-y-3">
+              <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                Distrito 1960 • {clube?.tipo}
+              </span>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight">{clube?.nome}</h1>
+            </div>
+
+            {perfil?.nivel >= 2 && (
+              <button 
+                onClick={() => alert("Abrir modal de edição do clube")}
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-all"
+              >
+                <Plus size={16} /> Editar Página
+              </button>
+            )}
+          </div>
           <p className="text-gray-200 text-sm md:text-base max-w-2xl font-medium">
             {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
           </p>
@@ -101,7 +114,11 @@ export default function OMeuClube() {
               <Bell size={20} className="text-red-500" />
               <h2 className="text-xl font-black uppercase tracking-tight">Anúncios Importantes</h2>
             </div>
-            <button className="text-[#002d5e] font-bold text-sm hover:underline">Ver Todos</button>
+            {perfil?.nivel >= 2 && (
+              <button className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-100 transition">
+                + PUBLICAR AVISO
+              </button>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
