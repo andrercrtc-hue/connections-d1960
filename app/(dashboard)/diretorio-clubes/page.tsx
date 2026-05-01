@@ -59,18 +59,26 @@ export default function DiretorioClubes() {
         });
         };
 
-  const clubesFiltrados = clubes.filter(clube => {
-    const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filtroTipo === 'Todos' || clube.tipo === filtroTipo;
-    const matchesFav = !verApenasFavoritos || favoritos.includes(clube.id);
-
-    return matchesSearch && matchesType && matchesFav;
-    });
+  const clubesFiltrados = clubes
+    .filter(clube => {
+        // Procura no nome ou no local de reunião
+        const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            clube.local_reuniao?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesType = filtroTipo === 'Todos' || clube.tipo === filtroTipo;
+        
+        // Se "verApenasFavoritos" estiver ativo, filtra apenas os IDs que estão na lista de favoritos
+        const matchesFav = !verApenasFavoritos || favoritos.includes(clube.id);
+        
+        return matchesSearch && matchesType && matchesFav;
+    })
+    // ADICIONA ISTO PARA A ORDEM ALFABÉTICA
+    .sort((a, b) => a.nome.localeCompare(b.nome));
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-4">
       <div className="w-8 h-8 border-4 border-[#002d5e] border-t-transparent rounded-full animate-spin"></div>
-      <p className="font-black text-xs uppercase tracking-widest italic">A carregar rede de impacto...</p>
+      <p className="font-black text-xs uppercase tracking-widest italic">A carregar rede de impacto Nexus...</p>
     </div>
   )
 
@@ -94,7 +102,7 @@ export default function DiretorioClubes() {
             placeholder="Procurar clubes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+            className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-[#002d5e] placeholder:text-gray-400 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
           />
         </div>
         
@@ -234,15 +242,6 @@ export default function DiretorioClubes() {
           </div>
         ))}
       </div>
-
-      {/* FOOTER DA LISTAGEM */}
-      {clubesFiltrados.length >= 6 && (
-        <div className="flex justify-center pt-12">
-          <button className="bg-gray-50 text-gray-400 px-12 py-5 rounded-full font-black text-xs uppercase tracking-widest hover:bg-gray-100 hover:text-gray-600 transition-all border border-gray-100">
-            Carregar mais clubes
-          </button>
-        </div>
-      )}
 
     </div>
   )
