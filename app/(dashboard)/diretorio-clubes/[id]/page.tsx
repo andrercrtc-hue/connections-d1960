@@ -110,44 +110,48 @@ export default function DetalheClube({ params }: { params: Promise<{ id: string 
         </div>
         
         <div className="space-y-4">
-            
             {/* QUANDO */}
-            <div className="bg-white/10 rounded-2xl p-4">
-            <div className="flex justify-between items-start mb-1">
-                <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
-                <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-2 py-0.5 rounded uppercase">Presencial</span>
-            </div>
-            <p className="font-bold">
-                {/* Lê diretamente do Supabase. Se vazio, não mostra nada */}
-                {clube.dia_reuniao ? `${clube.dia_reuniao}, ${clube.hora_reuniao}` : 'A definir'}
-            </p>
-            </div>
-
-            {/* LOCALIZAÇÃO */}
-            <div className="bg-white/10 rounded-2xl p-4">
-            <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-1 block">Localização</span>
-            <p className="font-bold">
-                {/* Lê o campo local_reuniao que já existia na tua tabela inicial */}
-                {clube.local_reuniao || 'A definir'}
-            </p>
-            <p className="text-sm text-gray-300">
-                {/* Lê a morada completa, se existir */}
-                {clube.morada_completa || ''}
-            </p>
-            </div>
-
-            {/* LÍNGUA */}
-            <div className="bg-white/10 rounded-2xl p-4 flex items-center justify-between">
-            <div>
-                <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
+                <div className="bg-white/10 rounded-2xl p-4">
+                <div className="flex justify-between items-start mb-1">
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
+                    {/* Lê a coluna tipo_reuniao (Presencial/Online/Híbrida) */}
+                    <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                    {clube.tipo_reuniao || 'Presencial'}
+                    </span>
+                </div>
                 <p className="font-bold">
-                {/* Lê do Supabase, falha para 'Português' se estiver vazio */}
-                {clube.lingua_reuniao || 'Português'}
+                    {/* O substring(0, 5) remove os segundos da coluna 'time' do Supabase */}
+                    {clube.dia_reuniao 
+                    ? `${clube.dia_reuniao}, ${clube.hora_reuniao?.substring(0, 5)}` 
+                    : 'A definir'}
                 </p>
-            </div>
-            <Globe className="text-white/50" />
-            </div>
-            
+                </div>
+
+                {/* LOCALIZAÇÃO */}
+                <div className="bg-white/10 rounded-2xl p-4">
+                <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-1 block">Localização</span>
+                <p className="font-bold">
+                    {/* Campo local_reuniao (ex: Abrantes) */}
+                    {clube.local_reuniao || 'A definir'}
+                </p>
+                <p className="text-sm text-gray-300">
+                    {/* Campo morada_completa (ex: Rua Direita, nº 1) */}
+                    {clube.morada_completa || 'Contacte-nos para a morada exata'}
+                </p>
+                </div>
+
+                {/* LÍNGUA */}
+                <div className="bg-white/10 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
+                    <p className="font-bold">
+                    {/* Campo lingua_reuniao */}
+                    {clube.lingua_reuniao || 'Português'}
+                    </p>
+                </div>
+                <Globe className="text-white/50" />
+                </div>
+
         </div>
         </div>
       </div>
