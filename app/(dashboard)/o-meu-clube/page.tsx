@@ -141,8 +141,11 @@ export default function OMeuClube() {
               <h2 className="text-xl font-black uppercase tracking-tight">Anúncios Importantes</h2>
             </div>
             {perfil?.nivel >= 2 && (
-              <button className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-100 transition">
-                PUBLICAR AVISO
+              <button 
+                onClick={publicarNovoAnuncio} // É aqui que ligas a lógica ao botão
+                className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-100 transition"
+              >
+                + PUBLICAR AVISO
               </button>
             )}
           </div>
