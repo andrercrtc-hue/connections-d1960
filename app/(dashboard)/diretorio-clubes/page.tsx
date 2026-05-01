@@ -1,0 +1,151 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { 
+  Search, Map, Filter, Heart, Mail, MapPin, 
+  ArrowRight
+} from 'lucide-react'
+import Link from 'next/link'
+
+export default function DiretorioClubes() {
+  const [clubes, setClubes] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    async function loadClubes() {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('clubes')
+        .select('*')
+        .order('nome', { ascending: true })
+      
+      if (data) setClubes(data)
+      setLoading(false)
+    }
+    loadClubes()
+  }, [])
+
+  const clubesFiltrados = clubes.filter(clube => 
+    clube.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    clube.local_reuniao?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-4">
+      <div className="w-8 h-8 border-4 border-[#002d5e] border-t-transparent rounded-full animate-spin"></div>
+      <p className="font-black text-xs uppercase tracking-widest italic">A carregar rede de impacto...</p>
+    </div>
+  )
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700">
+      
+      {/* HEADER */}
+      <header className="space-y-4">
+        <h1 className="text-[44px] font-black text-[#002d5e] tracking-tighter leading-none">Diretório de Clubes</h1>
+        <p className="text-gray-500 max-w-2xl text-lg leading-relaxed">
+          Explore a nossa rede global de impacto. Encontre clubes locais dedicados ao serviço comunitário e à transformação positiva.
+        </p>
+      </header>
+
+      {/* BARRA DE FERRAMENTAS */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full lg:max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input 
+            type="text"
+            placeholder="Procurar clubes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+          />
+        </div>
+        
+        <div className="flex items-center gap-3 w-full lg:w-auto font-bold">
+          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-6 py-4 rounded-2xl text-sm text-[#002d5e] hover:bg-gray-50 transition shadow-sm">
+            <Heart size={16} className="text-gray-300" /> Favoritos
+          </button>
+          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-6 py-4 rounded-2xl text-sm text-[#002d5e] hover:bg-gray-50 transition shadow-sm">
+            <Filter size={16} className="text-gray-300" /> Filtrar
+          </button>
+          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-[#002d5e] px-8 py-4 rounded-2xl text-sm font-black text-white hover:bg-[#001b3d] transition shadow-xl">
+            <Map size={16} /> Ver no Mapa
+          </button>
+        </div>
+      </div>
+
+      {/* GRELHA DE CLUBES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {clubesFiltrados.map((clube) => (
+          <div key={clube.id} className="group bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col">
+            
+            {/* IMAGEM E CAPA */}
+            <div className="relative h-60 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#fca311] z-10"></div>
+              <img 
+                src={clube.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600"} 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                alt={clube.nome}
+              />
+              <button className="absolute top-6 right-6 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-red-500 transition-all border border-white/20">
+                <Heart size={20} />
+              </button>
+            </div>
+
+            {/* CONTEÚDO DO CARTÃO */}
+            <div className="p-10 space-y-8 flex-1 flex flex-col">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-black text-[#002d5e] leading-tight tracking-tighter">
+                  {clube.nome}
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-4 text-gray-500">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                      <MapPin size={18} />
+                    </div>
+                    <div className="pt-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Sede de Reunião</p>
+                      <p className="text-xs font-bold text-gray-700">{clube.local_reuniao || 'Por definir'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 text-gray-500">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                      <Mail size={18} />
+                    </div>
+                    <div className="pt-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Contacto Oficial</p>
+                      <p className="text-xs font-bold text-gray-700 truncate">{clube.email_contacto || 'geral@rotary.pt'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACÇÃO FINAL */}
+              <div className="pt-4 mt-auto">
+                <Link 
+                  href={`/diretorio-clubes/${clube.id}`}
+                  className="w-full bg-[#002d5e] text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 group-hover:bg-[#fca311] transition-all duration-300 shadow-lg shadow-blue-900/10 group-hover:shadow-orange-500/20"
+                >
+                  Ver detalhes da unidade <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FOOTER DA LISTAGEM */}
+      {clubesFiltrados.length >= 6 && (
+        <div className="flex justify-center pt-12">
+          <button className="bg-gray-50 text-gray-400 px-12 py-5 rounded-full font-black text-xs uppercase tracking-widest hover:bg-gray-100 hover:text-gray-600 transition-all border border-gray-100">
+            Carregar mais clubes
+          </button>
+        </div>
+      )}
+
+    </div>
+  )
+}
