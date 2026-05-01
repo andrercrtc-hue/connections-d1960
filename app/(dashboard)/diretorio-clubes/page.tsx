@@ -17,18 +17,47 @@ export default function DiretorioClubes() {
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   
   useEffect(() => {
+    // 1. LER OS FAVORITOS GUARDADOS NO NAVEGADOR
+    const savedFavs = localStorage.getItem('rotary_favs');
+    if (savedFavs) {
+        try {
+        setFavoritos(JSON.parse(savedFavs));
+        } catch (err) {
+        console.error("Erro ao ler favoritos:", err);
+        }
+    }
+
+    // 2. LER OS CLUBES DA BASE DE DADOS
     async function loadClubes() {
-      setLoading(true)
-      const { data, error } = await supabase
+        setLoading(true)
+        const { data, error } = await supabase
         .from('clubes')
         .select('*')
         .order('nome', { ascending: true })
-      
-      if (data) setClubes(data)
-      setLoading(false)
+        
+        if (data) setClubes(data)
+        setLoading(false)
     }
+    
     loadClubes()
-  }, [])
+    }, [])
+
+    const toggleFavorito = (id: string, e: React.MouseEvent) => {
+        // MUITO IMPORTANTE: Impede que o clique no coração abra a página do clube
+        e.preventDefault();
+        e.stopPropagation();
+
+        setFavoritos((prev) => {
+            const isFav = prev.includes(id);
+            const novosFavs = isFav 
+            ? prev.filter(favId => favId !== id) 
+            : [...prev, id];
+            
+            // Guarda imediatamente no browser
+            localStorage.setItem('rotary_favs', JSON.stringify(novosFavs));
+            return novosFavs;
+        });
+        };
 
   const clubesFiltrados = clubes.filter(clube => {
     const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase());
@@ -147,8 +176,18 @@ export default function DiretorioClubes() {
                     target.onerror = null; // Evita loops infinitos se a imagem de fallback também falhar
                 }}
                 />
-              <button className="absolute top-6 right-6 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-red-500 transition-all border border-white/20">
-                <Heart size={20} />
+              <button 
+                onClick={(e) => toggleFavorito(clube.id, e)} // Passa o evento aqui
+                className={`absolute top-6 right-6 p-2.5 backdrop-blur-md rounded-full transition-all border z-20 ${
+                  favoritos.includes(clube.id)
+                    ? 'bg-red-500 border-red-500 text-white shadow-lg'
+                    : 'bg-white/20 border-white/20 text-white hover:bg-white hover:text-red-500'
+                }`}
+              >
+                <Heart 
+                  size={20} 
+                  className={favoritos.includes(clube.id) ? 'fill-current' : ''} 
+                />
               </button>
             </div>
 
@@ -188,7 +227,7 @@ export default function DiretorioClubes() {
                   href={`/diretorio-clubes/${clube.id}`}
                   className="w-full bg-[#002d5e] text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 group-hover:bg-[#fca311] transition-all duration-300 shadow-lg shadow-blue-900/10 group-hover:shadow-orange-500/20"
                 >
-                  Ver detalhes da unidade <ArrowRight size={18} />
+                  Ver detalhes <ArrowRight size={18} />
                 </Link>
               </div>
             </div>
