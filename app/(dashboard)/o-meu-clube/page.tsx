@@ -47,6 +47,44 @@ export default function OMeuClube() {
   if (loading) return <div className="p-20 text-center font-bold text-gray-400">A carregar o seu clube...</div>
 
   return (
+  <div className="pb-20 animate-in fade-in duration-700"> {/* Contentor Principal - Largura Total */}
+    
+    {/* 1. COLA O HERO HEADER AQUI (Linhas 51+) */}
+    <div className="relative h-[320px] w-full rounded-b-[40px] overflow-hidden flex items-end pb-10 px-8 md:px-12 -mt-10 mb-10">
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={clube?.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad"} 
+          className="w-full h-full object-cover" 
+          alt="Capa do Clube" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/60 to-transparent"></div>
+      </div>
+
+      <div className="relative z-10 space-y-3 text-white">
+        <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+          {clube?.tipo === 'Rotaract' ? 'Distrito 1960 • Rotaract' : 'Distrito 1960 • Rotary'}
+        </span>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight">{clube?.nome}</h1>
+        <p className="text-gray-200 text-sm md:text-base max-w-2xl font-medium">
+          {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
+        </p>
+      </div>
+    </div>
+
+    {/* 2. NOVO CONTENTOR PARA AS SECÇÕES (Onde estava a tua antiga linha 50) */}
+    <div className="max-w-7xl mx-auto px-6 space-y-10">
+      
+      {/* --- SECÇÃO 1: ANÚNCIOS (A tua linha 52 atual) --- */}
+      <section className="space-y-4">
+        {/* ... o teu código atual dos anúncios ... */}
+      </section>
+
+      {/* --- AS OUTRAS SECÇÕES CONTINUAM AQUI EM BAIXO --- */}
+
+    </div> {/* Fecha o contentor das secções */}
+  </div> // Fecha o contentor principal
+)
+  return (
     <div className="max-w-7xl mx-auto p-6 space-y-10 animate-in fade-in duration-700">
       
       {/* --- SECÇÃO 1: ANÚNCIOS --- */}
