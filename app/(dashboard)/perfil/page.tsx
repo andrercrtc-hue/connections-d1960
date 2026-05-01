@@ -49,6 +49,8 @@ type Perfil = {
   telefone?: string
   bio?: string
   avatar_url?: string
+  clube_id?: string
+  clube_nome?: string
 }
 
 export default function ProfilePage() {
@@ -82,7 +84,18 @@ export default function ProfilePage() {
         .single()
 
       if (data) {
-        setPerfil(data)
+        // Carregar nome do clube se existe clube_id
+        let clubeNome = ''
+        if (data.clube_id) {
+          const { data: clubeData } = await supabase
+            .from('clubes')
+            .select('nome')
+            .eq('id', data.clube_id)
+            .single()
+          clubeNome = clubeData?.nome || 'Clube não encontrado'
+        }
+        
+        setPerfil({ ...data, clube_nome: clubeNome })
         setFormData({
           primeiro_nome: data.primeiro_nome || '',
           apelido: data.apelido || '',
@@ -247,6 +260,15 @@ export default function ProfilePage() {
               <input 
                 className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm text-gray-400 cursor-not-allowed outline-none"
                 value={perfil?.email}
+                disabled
+              />
+            </div>
+
+            <div className="space-y-2 mb-8">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Clube</label>
+              <input 
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm text-gray-400 cursor-not-allowed outline-none"
+                value={perfil?.clube_nome || 'Sem clube atribuído'}
                 disabled
               />
             </div>
