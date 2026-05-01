@@ -1,223 +1,494 @@
 'use client'
+import { useParams } from 'next/navigation' 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Clock, MapPin, Globe, Mail, Phone, Share2, ArrowRight, ArrowLeft } from 'lucide-react'
+import { 
+  Bell, Calendar, FileText, Users, Wallet, 
+  ArrowRight, Download, Upload, Plus, ExternalLink 
+} from 'lucide-react'
 import Link from 'next/link'
-import { use } from 'react' // Adiciona este import no topo
 
-export default function DetalheClube({ params }: { params: Promise<{ id: string }> }) {
-  // "Desembrulha" o ID usando a função use()
-  const resolvedParams = use(params)
-  const id = resolvedParams.id
 
+
+export default function PaginaDinamicaClube() {
+  const params = useParams()
+  const clubeIdUrl = params.id as string // Captura o ID do URL
+  const [perfil, setPerfil] = useState<any>(null)
   const [clube, setClube] = useState<any>(null)
-  const [lideranca, setLideranca] = useState<any[]>([])
+  const [equipa, setEquipa] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [anuncios, setAnuncios] = useState<any[]>([]) // Novo estado para os anúncios
+  const [modoVisao, setModoVisao] = useState<'publico' | 'gestao'>('publico');
+  const publicarNovoAnuncio = async () => {
+    // Para testarmos agora sem criar um Modal complexo, vamos usar o 'prompt' do navegador
+    const titulo = window.prompt("Título do Anúncio:");
+    const descricao = window.prompt("Conteúdo do Anúncio:");
+    
+    if (!titulo || !descricao) return; // Cancela se estiver vazio
+
+    const { data, error } = await supabase
+      .from('anuncios')
+      .insert([
+        { 
+          titulo, 
+          descricao, 
+          tipo: 'urgente', // Podes mudar isto depois
+          clube_id: perfil.clube_id,
+          criado_por: perfil.id 
+        }
+      ]);
+
+    if (error) {
+      alert("Erro: " + error.message);
+    } else {
+      alert("Publicado! Faz refresh para ver.");
+      // No futuro, aqui chamamos a função para atualizar a lista automaticamente
+    }
+  };
+  
+  const apagarAnuncio = async (id: string) => {
+  // 1. Pedir confirmação para não apagar por engano
+  const confirmar = window.confirm("Tens a certeza que queres apagar este anúncio?");
+  if (!confirmar) return;
+
+  // 2. Apagar na base de dados do Supabase
+  const { error } = await supabase
+    .from('anuncios')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert("Erro ao apagar: " + error.message);
+  } else {
+    // 3. Atualizar a lista no ecrã imediatamente (sem refresh)
+    setAnuncios(prev => prev.filter(anuncio => anuncio.id !== id));
+  }
+};
 
   useEffect(() => {
     async function carregarDados() {
-      if (!id) return // Segurança extra
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-      const { data: clubeData, error } = await supabase
-        .from('clubes')
-        .select('*')
-        .eq('id', id)
-        .single()
-      
-        // --- ADICIONA ESTAS DUAS LINHAS AQUI PARA DEBUG ---
-        console.log("-----------------------------------------")
-        console.log("DADOS RECEBIDOS DO SUPABASE PARA O CLUBE:", clubeData)
-        console.log("ERRO DO SUPABASE (SE HOUVER):", error)
-        console.log("-----------------------------------------")
-        // ---------------------------------------------------
-        
-      if (error) {
-        console.error("Erro Supabase:", error.message)
-      }
-
-      if (clubeData) setClube(clubeData)
-
-      const { data: perfisData } = await supabase
+      // Primeiro: Carregar o perfil do utilizador logado para saber quem ele é
+      const { data: perfilData } = await supabase
         .from('perfis')
-        .select('*')
-        .eq('clube_id', id)
-        .not('cargo_clube', 'is', null)
-      
-      if (perfisData) setLideranca(perfisData)
+        .select('*, cargos_clube_config(nivel_acesso)')
+        .eq('id', user.id)
+        .single()
+
+      if (perfilData) {
+        setPerfil({
+          ...perfilData,
+          nivel: perfilData.cargos_clube_config?.nivel_acesso || 1
+        })
+
+        // SEGUNDO: Carregar o CLUBE específico do URL (não o do utilizador)
+        const { data: clubeData } = await supabase
+          .from('clubes')
+          .select('*')
+          .eq('id', clubeIdUrl)
+          .single()
+        
+        setClube(clubeData)
+
+        // TERCEIRO: Carregar equipa e anúncios deste clube do URL
+        const { data: equipaData } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('clube_id', clubeIdUrl)
+          .not('cargo_clube', 'is', null)
+        
+        if (equipaData) setEquipa(equipaData)
+
+        const { data: anunciosData } = await supabase
+          .from('anuncios')
+          .select('*')
+          .eq('clube_id', clubeIdUrl)
+          .order('created_at', { ascending: false })
+
+        if (anunciosData) setAnuncios(anunciosData)
+      }
       setLoading(false)
     }
-
     carregarDados()
-  }, [id]) // Usa o id aqui
+  }, [clubeIdUrl]) // Recarrega se o ID do URL mudar
 
+  const alterarCargoMembro = async (membroId: string, novoCargo: string) => {
+    const { error } = await supabase
+      .from('perfis')
+      .update({ cargo_clube: novoCargo })
+      .eq('id', membroId)
 
-  if (loading) return <div className="p-20 text-center font-bold text-gray-400">A carregar detalhes do clube...</div>
-  if (!clube) return <div className="p-20 text-center font-bold text-red-500">Clube não encontrado.</div>
+    if (error) {
+      alert("Erro ao atualizar cargo: " + error.message)
+    } else {
+      // Atualiza a lista localmente para refletir a mudança instantaneamente
+      setEquipa(prev => prev.map(m => 
+        m.id === membroId ? { ...m, cargo_clube: novoCargo } : m
+      ))
+    }
+  }
+
+  if (loading) return <div className="p-20 text-center font-bold text-gray-400">A carregar o seu clube...</div>
 
   return (
-    <div className="pb-20 animate-in fade-in duration-700 relative">
-      {/* BOTÃO VOLTAR (Canto Superior Esquerdo) */}
-        <div className="absolute top-6 left-6 md:left-10 z-30">
-        <Link 
-            href="/diretorio-clubes"
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full border border-white/20 transition-all shadow-xl group"
-        >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold">Voltar ao Diretório</span>
-        </Link>
-        </div>
-
-      {/* 1. HERO SECTION (Imagem de Fundo e Título) */}
-      <div className="relative h-[400px] w-full rounded-b-[40px] overflow-hidden flex items-end pb-12 px-8 md:px-20 -mt-10">
-        {/* Imagem de Fundo com Escurecimento para leitura */}
+    <div className="pb-20 animate-in fade-in duration-700">
+      {/* Contentor Principal - Largura Total */}
+      <div className="relative h-[320px] w-full rounded-b-[40px] overflow-hidden flex items-end pb-10 px-8 md:px-12 -mt-10 mb-10">
         <div className="absolute inset-0 z-0">
           <img 
-            src={clube.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad"} 
+            src={clube?.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad"} 
             className="w-full h-full object-cover" 
             alt="Capa do Clube" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/70 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/60 to-transparent"></div>
         </div>
 
-        {/* Conteúdo do Hero */}
-        <div className="relative z-10 space-y-4 max-w-4xl text-white">
-          <div className="flex gap-3">
-            <span className="bg-[#fca311] text-[#002d5e] text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
-              Distrito 1960
-            </span>
-            {clube.ano_fundacao && (
-              <span className="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Fundado em {clube.ano_fundacao}
+        <div className="relative z-10 space-y-3 text-white w-full">
+          <div className="flex justify-between items-end w-full">
+            <div className="space-y-3">
+              <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                Distrito 1960 • {clube?.tipo}
               </span>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight">{clube?.nome}</h1>
+            </div>
+
+          <div className="flex gap-3">
+            {/* 1. BOTÃO "VER O MEU CLUBE": Aparece se eu pertencer a este clube e estiver na visão pública */}
+            {perfil?.clube_id === clubeIdUrl && modoVisao === 'publico' && (
+              <button 
+                onClick={() => setModoVisao('gestao')}
+                className="bg-[#fca311] hover:bg-orange-500 text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black transition-all shadow-lg"
+              >
+                <Users size={16} /> VER O MEU CLUBE
+              </button>
+            )}
+
+            {/* 2. BOTÃO "VISÃO PÚBLICA": Aparece quando estou a gerir, para poder voltar atrás */}
+            {modoVisao === 'gestao' && (
+              <button 
+                onClick={() => setModoVisao('publico')}
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold border border-white/30 backdrop-blur-md"
+              >
+                VISÃO PÚBLICA
+              </button>
+            )}
+
+            {/* 3. BOTÃO "EDITAR PÁGINA": Agora só aparece se eu for editor E estiver no modo de gestão */}
+            {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+              <button 
+                onClick={() => alert("Abrir modal de edição")}
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-all"
+              >
+                <Plus size={16} /> Editar Página
+              </button>
             )}
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight">{clube.nome}</h1>
-          <p className="text-lg text-gray-200 leading-relaxed max-w-2xl">
-            {clube.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
+
+          </div>
+          <p className="text-gray-200 text-sm md:text-base max-w-2xl font-medium">
+            {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
           </p>
         </div>
       </div>
 
-      {/* 2. CONTEÚDO PRINCIPAL (Sobre e Reuniões) */}
-      <div className="max-w-7xl mx-auto px-4 mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        {/* Cartão Sobre */}
-        <div className="md:col-span-2 bg-white rounded-[32px] p-10 border-t-4 border-[#002d5e] shadow-sm">
-          <h2 className="text-3xl font-black text-[#002d5e] mb-6">Sobre o Clube</h2>
-          <p className="text-gray-500 leading-relaxed text-lg">
-            {clube.descricao || `O ${clube.nome} é uma instituição dedicada à promoção da paz, ao combate de doenças e ao apoio à educação local. Mantemos uma rede vibrante de profissionais que dedicam o seu tempo a projetos de impacto social transformador.`}
-          </p>
-        </div>
-
-        {/* Cartão Azul de Reuniões */}
-        <div className="bg-[#003b7a] text-white rounded-[32px] p-8 shadow-xl space-y-6">
-        <div className="flex items-center gap-3 border-b border-white/20 pb-4">
-            <Clock size={24} />
-            <h3 className="text-2xl font-black">Reuniões</h3>
-        </div>
-        
-        <div className="space-y-4">
-            {/* QUANDO */}
-                <div className="bg-white/10 rounded-2xl p-4">
-                <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
-                    {/* Lê a coluna tipo_reuniao (Presencial/Online/Híbrida) */}
-                    <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-2 py-0.5 rounded uppercase">
-                    {clube.tipo_reuniao || 'Presencial'}
-                    </span>
-                </div>
-                <p className="font-bold">
-                    {/* O substring(0, 5) remove os segundos da coluna 'time' do Supabase */}
-                    {clube.dia_reuniao 
-                    ? `${clube.dia_reuniao}, ${clube.hora_reuniao?.substring(0, 5)}` 
-                    : 'A definir'}
+      <div className="max-w-7xl mx-auto px-6 space-y-10">
+          {/* --- CASO 1: VISÃO PÚBLICA (Imagem 1) --- */}
+          {modoVisao === 'publico' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {/* Coluna Sobre o Clube */}
+              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm">
+                <h2 className="text-2xl font-black text-[#002d5e] mb-4 uppercase tracking-tight">Sobre o Clube</h2>
+                <p className="text-gray-500 leading-relaxed font-medium">
+                  {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
                 </p>
+              </div>
+
+              {/* Coluna Card de Reuniões Vertical */}
+              <div className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
+                <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+                  <Calendar size={20} className="text-[#fca311]" />
+                  <h2 className="text-xl font-black uppercase tracking-tight">Reuniões</h2>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Quando</span>
+                    <p className="font-bold">{clube?.dia_reuniao || 'A definir'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Localização</span>
+                    <p className="font-bold">{clube?.local_reuniao || 'Sede do Clube'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- CASO 2: VISÃO DE GESTÃO (Imagem 2) --- */}
+          {modoVisao === 'gestao' && (
+            <> {/* O Fragment é OBRIGATÓRIO aqui porque tens várias secções */}
+              
+              {/* --- SECÇÃO 1: ANÚNCIOS (O código que já tens) --- */}
+              <section className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2 text-[#002d5e]">
+                    <Bell size={20} />
+                    <h2 className="text-xl font-black uppercase tracking-tight">Anúncios do Clube</h2>
+                  </div>
+                  {perfil?.nivel >= 2 && (
+                    <button 
+                      onClick={publicarNovoAnuncio}
+                      className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
+                    >
+                      <Plus size={16} /> Novo Anúncio
+                    </button>
+                  )}
                 </div>
 
-                {/* LOCALIZAÇÃO */}
-                <div className="bg-white/10 rounded-2xl p-4">
-                <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-1 block">Localização</span>
-                <p className="font-bold">
-                    {/* Campo local_reuniao (ex: Abrantes) */}
-                    {clube.local_reuniao || 'A definir'}
-                </p>
-                <p className="text-sm text-gray-300">
-                    {/* Campo morada_completa (ex: Rua Direita, nº 1) */}
-                    {clube.morada_completa || 'Contacte-nos para a morada exata'}
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {anuncios.length > 0 ? (
+                    anuncios.map((anuncio) => (
+                      <div 
+                        key={anuncio.id} 
+                        className={`${
+                          anuncio.tipo === 'urgente' ? 'bg-red-50 border-red-500' : 'bg-gray-50 border-gray-300'
+                        } border-l-4 p-6 rounded-2xl flex flex-col justify-center relative group`}
+                      >
+                        <span className={`text-[10px] font-black uppercase mb-1 ${
+                          anuncio.tipo === 'urgente' ? 'text-red-600' : 'text-gray-500'
+                        }`}>
+                          {anuncio.tipo}
+                        </span>
+                        <h3 className="font-bold text-[#002d5e]">{anuncio.titulo}</h3>
+                        <p className={`text-sm ${anuncio.tipo === 'urgente' ? 'text-red-700/70' : 'text-gray-500'}`}>
+                          {anuncio.descricao}
+                        </p>
+                        
+                        {/* Botão de apagar que só aparece para gestores */}
+                        {perfil?.nivel >= 2 && (
+                          <button 
+                            onClick={() => apagarAnuncio(anuncio.id)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 py-10 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+                      <p className="text-gray-400 text-sm italic">Não existem anúncios publicados de momento.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* --- SECÇÃO 2: INFORMAÇÕES DE REUNIÃO (O código azul horizontal) --- */}
+              <section className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
+                {/* Detalhe estético de fundo */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+                
+                <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                  <div className="bg-white/10 p-2 rounded-lg">
+                    <Calendar size={20} className="text-[#fca311]" />
+                  </div>
+                  <h2 className="text-xl font-black uppercase tracking-tight">Informações de Reunião</h2>
                 </div>
 
-                {/* LÍNGUA */}
-                <div className="bg-white/10 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
-                    <p className="font-bold">
-                    {/* Campo lingua_reuniao */}
-                    {clube.lingua_reuniao || 'Português'}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* QUANDO */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
+                      <span className="bg-[#fca311] text-[#002d5e] text-[8px] font-black px-2 py-0.5 rounded uppercase">
+                        {clube?.tipo_reuniao || 'Presencial'}
+                      </span>
+                    </div>
+                    <p className="text-lg font-bold leading-tight">
+                      {clube?.dia_reuniao || 'A definir'}
                     </p>
+                    <p className="text-xs text-white/60">
+                      {clube?.hora_reuniao ? `Às ${clube.hora_reuniao}` : 'Contacte o clube para o horário'}
+                    </p>
+                  </div>
+
+                  {/* LOCALIZAÇÃO */}
+                  <div className="space-y-2 border-l border-white/10 pl-8">
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Localização</span>
+                    <p className="text-lg font-bold leading-tight">
+                      {clube?.local_reuniao || 'Sede do Clube'}
+                    </p>
+                    <p className="text-xs text-white/60">
+                      Contacte-nos para a morada exata
+                    </p>
+                  </div>
+
+                  {/* LÍNGUA E CONTACTO */}
+                  <div className="space-y-2 border-l border-white/10 pl-8">
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Língua Oficial</span>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold">Português</p>
+                      <ExternalLink size={14} className="text-white/40" />
+                    </div>
+                    {perfil?.nivel >= 2 && (
+                      <button className="text-[10px] font-black text-[#fca311] hover:underline uppercase mt-2">
+                        Editar Detalhes
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <Globe className="text-white/50" />
+              </section>
+
+              {/* ... Outras secções de gestão (Tesouraria, etc.) ... */}
+              {/* --- SECÇÃO 3: SECRETARIA E TESOURARIA --- */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-white border border-gray-100 rounded-[32px] p-8 space-y-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-[#002d5e] border-b pb-4">
+                    <FileText size={24} />
+                    <h2 className="text-2xl font-black uppercase tracking-tight">Secretaria</h2>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 border border-gray-100 rounded-2xl space-y-2 hover:bg-gray-50 cursor-pointer">
+                      <FileText className="text-blue-500" />
+                      <p className="font-bold text-[#002d5e] text-sm leading-tight">Modelos de Documentos</p>
+                      <p className="text-[10px] text-gray-400">Aceda a atas, cartas tipo e modelos standard.</p>
+                    </div>
+                    <div className="p-4 border border-gray-100 rounded-2xl space-y-2 hover:bg-gray-50 cursor-pointer">
+                      <Users className="text-blue-500" />
+                      <p className="font-bold text-[#002d5e] text-sm leading-tight">Secretaria Distrital</p>
+                      <p className="text-[10px] text-gray-400">Contactos diretos e horários da equipa.</p>
+                    </div>
+                  </div>
+                  <button className="w-full bg-blue-50 text-blue-600 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-100 transition">
+                    <FileText size={18} /> Formulários Administrativos <ArrowRight size={18} />
+                  </button>
                 </div>
 
-        </div>
-        </div>
-      </div>
+                <div className="bg-white border border-gray-100 rounded-[32px] p-8 space-y-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-[#002d5e] border-b pb-4">
+                    <Wallet size={24} className="text-[#fca311]" />
+                    <h2 className="text-2xl font-black uppercase tracking-tight">Tesouraria</h2>
+                  </div>
+                  <div className="bg-gray-50 rounded-2xl p-6 text-center space-y-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Saldo Atual</span>
+                    <p className="text-4xl font-black text-[#002d5e]">12.450,00€</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="bg-green-50 p-4 rounded-2xl">
+                      <span className="text-[10px] font-black text-green-600 uppercase">Quotas em dia</span>
+                      <p className="text-xl font-black text-green-700">92%</p>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-2xl">
+                      <span className="text-[10px] font-black text-orange-600 uppercase">Próx. Vencimento</span>
+                      <p className="text-xl font-black text-orange-700">15 Set</p>
+                    </div>
+                  </div>
+                  <button className="w-full border-2 border-[#002d5e] text-[#002d5e] font-black py-3 rounded-xl hover:bg-[#002d5e] hover:text-white transition">
+                    Detalhes Financeiros
+                  </button>
+                </div>
+              </div>
 
-      {/* 3. LIDERANÇA DO CLUBE (Ligado aos Perfis) */}
-      <div className="max-w-7xl mx-auto px-4 mt-16 space-y-8">
-        <div className="flex justify-between items-end">
-          <h2 className="text-3xl font-black text-[#002d5e]">Liderança do Clube</h2>
-          <button className="text-[#002d5e] font-bold text-sm flex items-center gap-2 hover:underline">
-            Ver Direção Completa <ArrowRight size={16} />
-          </button>
-        </div>
+            </> 
+          )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {lideranca.length > 0 ? (
-            lideranca.map((lider) => (
-            <div key={lider.id} className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center group hover:shadow-xl transition-all">
-                
-                {/* Imagem + Badge de Cargo */}
-                <div className="relative mb-6">
-                <div className="w-28 h-28 rounded-full border-4 border-[#fca311] overflow-hidden">
+          {/* --- SECÇÃO COMUM: LIDERANÇA (Fora de qualquer condição) --- */}
+          <section className="space-y-4 pt-10 border-t border-gray-50">
+            <div className="flex items-center gap-2 text-[#002d5e]">
+              <Users size={20} />
+              <h2 className="text-xl font-black uppercase tracking-tight">Equipa do Clube</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {equipa.map((membro) => (
+                <div key={membro.id} className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-4 group hover:shadow-md transition">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-[#fca311]">
                     <img 
-                    src={lider.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400"} 
-                    alt={lider.nome_completo}
-                    className="w-full h-full object-cover"
+                      src={membro.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400"} 
+                      className="w-full h-full object-cover"
                     />
+                  </div>
+                  <div>
+                    {/* Ajuste para os nomes reais da tua tabela */}
+                    <h4 className="font-black text-[#002d5e] leading-tight">
+                      {membro.primeiro_nome} {membro.apelido}
+                    </h4>
+                    
+                    {/* LÓGICA DE GESTÃO: Só quem é nível 2 (Presidente/Secretário/Tesoureiro) vê os comandos */}
+                    {perfil?.nivel >= 2 ? (
+                      <div className="mt-1">
+                        {perfil.id !== membro.id ? (
+                          <select
+                            value={membro.cargo_clube || 'Membro'}
+                            onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
+                            className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
+                          >
+                            <option value="Membro">Membro</option>
+                            <option value="Presidente">Presidente</option>
+                            <option value="Secretário">Secretário</option>
+                            <option value="Tesoureiro">Tesoureiro</option>
+                            <option value="Vice-Presidente">Vice-Presidente</option>
+                            <option value="Protocolo">Protocolo</option>
+                          </select>
+                        ) : (
+                          <div className="flex flex-col">
+                            {/* Mostra o teu cargo real (Presidente) */}
+                            <span className="text-[10px] font-bold text-blue-600 uppercase">
+                              {membro.cargo_clube}
+                            </span>
+                            {/* Mantém o aviso que és tu */}
+                            <span className="text-[8px] font-black text-orange-500 uppercase italic">
+                              O teu cargo
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* O que o utilizador comum vê */
+                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                        {membro.cargo_clube || 'Membro'}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-gray-400">2025-2026</p>
+                  </div>
                 </div>
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#002d5e] text-white text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap shadow-md">
-                    {lider.cargo_clube}
-                </div>
-                </div>
-
-                {/* Nome do Líder */}
-                <h3 className="text-[#002d5e] font-black text-lg">{lider.nome_completo}</h3>
-                
-                {/* REMOVIDO: Área Profissional */}
-
-                {/* Ícones de Contacto */}
-                <div className="flex gap-4 mt-8">
-                <button className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
-                    <Mail size={16} />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
-                    <Phone size={16} />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
-                    <Share2 size={16} />
-                </button>
-                </div>
+              ))}
             </div>
-            ))
-        ) : (
-            <div className="col-span-3 text-center py-10 bg-gray-50 rounded-[32px] text-gray-400 font-bold">
-            Ainda não existem membros da direção associados a este clube.
+          </section>
+
+          {/* --- SECÇÃO 5: REPOSITÓRIO --- */}
+          <section className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-[#002d5e]">
+                <FileText size={20} />
+                <h2 className="text-xl font-black uppercase tracking-tight">Repositório do Clube</h2>
+              </div>
+              <div className="flex gap-2">
+                <button className="bg-[#002d5e] text-white p-2.5 rounded-lg hover:bg-blue-900 transition"><Upload size={18}/></button>
+                <button className="border border-gray-200 text-[#002d5e] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition">Explorar Tudo</button>
+              </div>
             </div>
-        )}
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { nome: 'Plano Estratégico 2024', tipo: 'PDF', size: '2.4 MB' },
+                { nome: 'Lista de Membros Ativa', tipo: 'XLSX', size: '1.1 MB' },
+                { nome: 'Estatutos de Clube', tipo: 'PDF', size: '4.8 MB' },
+                { nome: 'Arquivo Fotográfico', tipo: 'ZIP', size: '145 MB' },
+              ].map((doc, i) => (
+                <div key={i} className="bg-gray-50 p-6 rounded-[24px] space-y-4 hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-lg transition cursor-pointer group">
+                  <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition">
+                    <FileText size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#002d5e] text-sm line-clamp-2">{doc.nome}</h4>
+                    <p className="text-[10px] text-gray-400 uppercase font-black mt-1">{doc.tipo} • {doc.size}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
-
-    </div>
   )
 }

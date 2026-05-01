@@ -1,5 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { 
   LayoutDashboard, Home, Briefcase, Calendar, Users, 
   ClipboardList, HelpCircle, LogOut, Award
@@ -9,10 +10,27 @@ import { supabase } from '@/lib/supabase'
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [clubeId, setClubeId] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function carregarPerfil() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data } = await supabase
+          .from('perfis')
+          .select('clube_id')
+          .eq('id', user.id)
+          .single()
+        
+        if (data?.clube_id) setClubeId(data.clube_id)
+      }
+    }
+    carregarPerfil()
+  }, [])
 
   const menuItems = [
     { icon: <LayoutDashboard size={20}/>, label: "Painel Principal", path: "/dashboard" },
-    { icon: <Home size={20}/>, label: "O meu Clube", path: "/o-meu-clube" },
+    { icon: <Home size={20}/>,  label: "O meu Clube", path: clubeId ? `/diretorio-clubes/${clubeId}` : '#' },
     { icon: <Award size={20}/>, label: "Equipa Distrital", path: "/equipa-distrital" },
     { icon: <Briefcase size={20}/>, label: "Projetos", path: "/dashboard/projetos" },
     { icon: <Calendar size={20}/>, label: "Calendário", path: "/dashboard/calendario" },
