@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Clock, MapPin, Globe, Mail, Phone, Share2, ArrowRight } from 'lucide-react'
+import { Clock, MapPin, Globe, Mail, Phone, Share2, ArrowRight, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { use } from 'react' // Adiciona este import no topo
 
@@ -48,8 +48,18 @@ export default function DetalheClube({ params }: { params: Promise<{ id: string 
   if (!clube) return <div className="p-20 text-center font-bold text-red-500">Clube não encontrado.</div>
 
   return (
-    <div className="pb-20 animate-in fade-in duration-700">
-      
+    <div className="pb-20 animate-in fade-in duration-700 relative">
+      {/* BOTÃO VOLTAR (Canto Superior Esquerdo) */}
+        <div className="absolute top-6 left-6 md:left-10 z-30">
+        <Link 
+            href="/diretorio-clubes"
+            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-full border border-white/20 transition-all shadow-xl group"
+        >
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-bold">Voltar ao Diretório</span>
+        </Link>
+        </div>
+        
       {/* 1. HERO SECTION (Imagem de Fundo e Título) */}
       <div className="relative h-[400px] w-full rounded-b-[40px] overflow-hidden flex items-end pb-12 px-8 md:px-20 -mt-10">
         {/* Imagem de Fundo com Escurecimento para leitura */}
