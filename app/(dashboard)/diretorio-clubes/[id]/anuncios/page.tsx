@@ -1,4 +1,5 @@
 'use client'
+import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
@@ -11,6 +12,7 @@ export default function ComunicacaoClube() {
   const [loading, setLoading] = useState(true)
   const [anuncios, setAnuncios] = useState<any[]>([])
   const [perfil, setPerfil] = useState<any>(null)
+  const params = useParams() // Esta linha é a que captura o ID da URL
   
   // Estado do Formulário focado no 'tipo'
   const [form, setForm] = useState({
@@ -80,7 +82,7 @@ export default function ComunicacaoClube() {
       {/* HEADER */}
       <header className="space-y-2">
         <div className="flex items-center gap-4">
-          <Link href="/o-meu-clube" className="text-gray-400 hover:text-[#002d5e] transition">
+          <Link href={`/diretorio-clubes/${params.id}`} className="text-gray-400 hover:text-[#002d5e] transition">
             <ChevronLeft size={24} />
           </Link>
           <h1 className="text-4xl font-black text-[#002d5e] tracking-tight">Comunicação do Clube</h1>

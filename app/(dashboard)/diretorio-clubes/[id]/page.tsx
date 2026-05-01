@@ -361,39 +361,6 @@ export default function PaginaDinamicaClube() {
                   </div>
                 </div>
               </section>
-
-              {/* --- SECÇÃO 5: REPOSITÓRIO --- */}
-              <section className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2 text-[#002d5e]">
-                    <FileText size={20} />
-                    <h2 className="text-xl font-black uppercase tracking-tight">Repositório do Clube</h2>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="bg-[#002d5e] text-white p-2.5 rounded-lg hover:bg-blue-900 transition"><Upload size={18}/></button>
-                    <button className="border border-gray-200 text-[#002d5e] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition">Explorar Tudo</button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {[
-                    { nome: 'Plano Estratégico 2024', tipo: 'PDF', size: '2.4 MB' },
-                    { nome: 'Lista de Membros Ativa', tipo: 'XLSX', size: '1.1 MB' },
-                    { nome: 'Estatutos de Clube', tipo: 'PDF', size: '4.8 MB' },
-                    { nome: 'Arquivo Fotográfico', tipo: 'ZIP', size: '145 MB' },
-                  ].map((doc, i) => (
-                    <div key={i} className="bg-gray-50 p-6 rounded-[24px] space-y-4 hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-lg transition cursor-pointer group">
-                      <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition">
-                        <FileText size={20} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#002d5e] text-sm line-clamp-2">{doc.nome}</h4>
-                        <p className="text-[10px] text-gray-400 uppercase font-black mt-1">{doc.tipo} • {doc.size}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
               
               {/* ... Outras secções de gestão (Tesouraria, etc.) ... */}
               {/* --- SECÇÃO 3: SECRETARIA E TESOURARIA --- */}
@@ -444,6 +411,39 @@ export default function PaginaDinamicaClube() {
                   </button>
                 </div>
               </div>
+
+              {/* --- SECÇÃO 5: REPOSITÓRIO --- */}
+              <section className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2 text-[#002d5e]">
+                    <FileText size={20} />
+                    <h2 className="text-xl font-black uppercase tracking-tight">Repositório do Clube</h2>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="bg-[#002d5e] text-white p-2.5 rounded-lg hover:bg-blue-900 transition"><Upload size={18}/></button>
+                    <button className="border border-gray-200 text-[#002d5e] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition">Explorar Tudo</button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {[
+                    { nome: 'Plano Estratégico 2024', tipo: 'PDF', size: '2.4 MB' },
+                    { nome: 'Lista de Membros Ativa', tipo: 'XLSX', size: '1.1 MB' },
+                    { nome: 'Estatutos de Clube', tipo: 'PDF', size: '4.8 MB' },
+                    { nome: 'Arquivo Fotográfico', tipo: 'ZIP', size: '145 MB' },
+                  ].map((doc, i) => (
+                    <div key={i} className="bg-gray-50 p-6 rounded-[24px] space-y-4 hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-lg transition cursor-pointer group">
+                      <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#002d5e] text-sm line-clamp-2">{doc.nome}</h4>
+                        <p className="text-[10px] text-gray-400 uppercase font-black mt-1">{doc.tipo} • {doc.size}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
             </> 
           )}
