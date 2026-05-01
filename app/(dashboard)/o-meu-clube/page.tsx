@@ -12,6 +12,7 @@ export default function OMeuClube() {
   const [clube, setClube] = useState<any>(null)
   const [equipa, setEquipa] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [anuncios, setAnuncios] = useState<any[]>([]) // Novo estado para os anúncios
   const publicarNovoAnuncio = async () => {
     // Para testarmos agora sem criar um Modal complexo, vamos usar o 'prompt' do navegador
     const titulo = window.prompt("Título do Anúncio:");
@@ -71,6 +72,15 @@ export default function OMeuClube() {
           .order('cargo_clube') // Pode ajustar a ordem (Presidente, Secretário...)
         
         if (equipaData) setEquipa(equipaData)
+
+        // 3. Carregar Anúncios do Clube
+        const { data: anunciosData } = await supabase
+          .from('anuncios')
+          .select('*')
+          .eq('clube_id', perfilData.clube_id)
+          .order('criado_at', { ascending: false }) // Os mais recentes primeiro
+
+        if (anunciosData) setAnuncios(anunciosData)
       }
       setLoading(false)
     }
