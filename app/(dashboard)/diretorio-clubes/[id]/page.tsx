@@ -59,7 +59,7 @@ export default function DetalheClube({ params }: { params: Promise<{ id: string 
             <span className="text-sm font-bold">Voltar ao Diretório</span>
         </Link>
         </div>
-        
+
       {/* 1. HERO SECTION (Imagem de Fundo e Título) */}
       <div className="relative h-[400px] w-full rounded-b-[40px] overflow-hidden flex items-end pb-12 px-8 md:px-20 -mt-10">
         {/* Imagem de Fundo com Escurecimento para leitura */}
