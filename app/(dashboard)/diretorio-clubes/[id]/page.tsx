@@ -90,7 +90,7 @@ export default function PaginaDinamicaClube() {
           .from('anuncios')
           .select('*')
           .eq('clube_id', clubeIdUrl)
-          .order('created_at', { ascending: false }); // Se der erro, tenta 'criado_at'
+          .order('criado_at', { ascending: false }); // Se der erro, tenta 'criado_at'
 
         if (anunciosData) setAnuncios(anunciosData);
         if (errAnuncios) console.error("Erro nos anúncios:", errAnuncios);

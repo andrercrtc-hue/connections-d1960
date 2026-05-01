@@ -128,7 +128,7 @@ export default function ComunicacaoClube() {
                   type="text"
                   required
                   placeholder="Ex: Próxima Assembleia"
-                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm text-[#002d5e] placeholder-gray-500 focus:ring-2 focus:ring-blue-100 outline-none"
                   onChange={(e) => setForm({...form, titulo: e.target.value})}
                 />
               </div>
@@ -138,7 +138,7 @@ export default function ComunicacaoClube() {
                   <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Prioridade</label>
                   <select 
                     value={form.tipo}
-                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm text-[#002d5e] placeholder-gray-500 focus:ring-2 focus:ring-blue-100 outline-none"
                     onChange={(e) => setForm({...form, tipo: e.target.value})}
                   >
                     <option value="normal">Normal</option>
@@ -149,7 +149,7 @@ export default function ComunicacaoClube() {
                   <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Expira em</label>
                   <input 
                     type="date"
-                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                    className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm text-[#002d5e] placeholder-gray-500 focus:ring-2 focus:ring-blue-100 outline-none"
                     onChange={(e) => setForm({...form, data_expiracao: e.target.value})}
                   />
                 </div>
@@ -161,7 +161,7 @@ export default function ComunicacaoClube() {
                   rows={6}
                   required
                   placeholder="Escreve aqui os detalhes..."
-                   className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
+                  className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm text-[#002d5e] placeholder-gray-500 focus:ring-2 focus:ring-blue-100 outline-none"
                   onChange={(e) => setForm({...form, conteudo: e.target.value})}
                 />
               </div>
