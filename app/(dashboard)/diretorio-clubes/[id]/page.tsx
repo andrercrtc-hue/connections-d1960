@@ -260,7 +260,7 @@ export default function PaginaDinamicaClube() {
                   </div>
                   {perfil?.nivel >= 2 && (
                     <Link 
-                      href={`/diretorio-clubes/${clubeIdUrl}/anucios`}
+                      href={`/diretorio-clubes/${clubeIdUrl}/anuncios`}
                       className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
                     >
                       <Plus size={16} /> Novo Anúncio
