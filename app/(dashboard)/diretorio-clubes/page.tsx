@@ -84,10 +84,16 @@ export default function DiretorioClubes() {
             <div className="relative h-60 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1.5 bg-[#fca311] z-10"></div>
               <img 
-                src={clube.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600"} 
+                src={clube.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800"} 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                 alt={clube.nome}
-              />
+                // Se a imagem falhar ao carregar, substitui por uma imagem genérica elegante
+                onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800"; // Paisagem genérica
+                    target.onerror = null; // Evita loops infinitos se a imagem de fallback também falhar
+                }}
+                />
               <button className="absolute top-6 right-6 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-red-500 transition-all border border-white/20">
                 <Heart size={20} />
               </button>
