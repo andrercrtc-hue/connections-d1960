@@ -59,21 +59,27 @@ export default function DiretorioClubes() {
         });
         };
 
-  const clubesFiltrados = clubes
-    .filter(clube => {
-        // Procura no nome ou no local de reunião
-        const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            clube.local_reuniao?.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesType = filtroTipo === 'Todos' || clube.tipo === filtroTipo;
-        
-        // Se "verApenasFavoritos" estiver ativo, filtra apenas os IDs que estão na lista de favoritos
-        const matchesFav = !verApenasFavoritos || favoritos.includes(clube.id);
-        
-        return matchesSearch && matchesType && matchesFav;
-    })
-    // ADICIONA ISTO PARA A ORDEM ALFABÉTICA
-    .sort((a, b) => a.nome.localeCompare(b.nome));
+  const clubesFiltrados = (
+    Object.values(
+      clubes
+        .filter(clube => {
+          // Procura no nome ou no local de reunião
+          const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              clube.local_reuniao?.toLowerCase().includes(searchTerm.toLowerCase());
+          
+          const matchesType = filtroTipo === 'Todos' || clube.tipo === filtroTipo;
+          
+          // Se "verApenasFavoritos" estiver ativo, filtra apenas os IDs que estão na lista de favoritos
+          const matchesFav = !verApenasFavoritos || favoritos.includes(clube.id);
+          
+          return matchesSearch && matchesType && matchesFav;
+        })
+        .reduce((acc: Record<string, any>, clube) => {
+          acc[clube.id] = clube;
+          return acc;
+        }, {} as Record<string, any>)
+    ) as any[]
+  ).sort((a, b) => a.nome.localeCompare(b.nome));
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-4">
