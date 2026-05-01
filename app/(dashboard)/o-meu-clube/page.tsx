@@ -135,6 +135,62 @@ export default function OMeuClube() {
           </div>
         </section>
 
+        {/* --- SECÇÃO: INFORMAÇÕES DE REUNIÃO (Horizontal) --- */}
+        <section className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
+          {/* Detalhe estético de fundo */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+          
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <div className="bg-white/10 p-2 rounded-lg">
+              <Calendar size={20} className="text-[#fca311]" />
+            </div>
+            <h2 className="text-xl font-black uppercase tracking-tight">Informações de Reunião</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* QUANDO */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
+                <span className="bg-[#fca311] text-[#002d5e] text-[8px] font-black px-2 py-0.5 rounded uppercase">
+                  {clube?.modalidade_reuniao || 'Presencial'}
+                </span>
+              </div>
+              <p className="text-lg font-bold leading-tight">
+                {clube?.dia_semana || 'A definir'}
+              </p>
+              <p className="text-xs text-white/60">
+                {clube?.hora_reuniao ? `Às ${clube.hora_reuniao}` : 'Contacte o clube para o horário'}
+              </p>
+            </div>
+
+            {/* LOCALIZAÇÃO */}
+            <div className="space-y-2 border-l border-white/10 pl-8">
+              <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Localização</span>
+              <p className="text-lg font-bold leading-tight">
+                {clube?.local_reuniao || 'Sede do Clube'}
+              </p>
+              <p className="text-xs text-white/60">
+                Contacte-nos para a morada exata
+              </p>
+            </div>
+
+            {/* LÍNGUA E CONTACTO */}
+            <div className="space-y-2 border-l border-white/10 pl-8">
+              <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Língua Oficial</span>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-bold">Português</p>
+                <ExternalLink size={14} className="text-white/40" />
+              </div>
+              {perfil?.nivel >= 2 && (
+                <button className="text-[10px] font-black text-[#fca311] hover:underline uppercase mt-2">
+                  Editar Detalhes
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+
         {/* --- SECÇÃO 2: PRÓXIMOS EVENTOS --- */}
         <section className="space-y-4">
           <div className="flex justify-between items-center">

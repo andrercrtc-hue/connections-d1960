@@ -66,6 +66,19 @@ export default function ProfilePage() {
     bio: ''
   })
 
+  function normalizeInputValue(value: string) {
+    return value.replace(/\s+/g, ' ').trim()
+  }
+
+  function normalizeFormData(data: typeof formData) {
+    return {
+      primeiro_nome: normalizeInputValue(data.primeiro_nome),
+      apelido: normalizeInputValue(data.apelido),
+      telefone: normalizeInputValue(data.telefone),
+      bio: normalizeInputValue(data.bio)
+    }
+  }
+
   // --- ESTADOS DO EDITOR DE IMAGEM ---
   const [imageToCrop, setImageToCrop] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -110,13 +123,16 @@ export default function ProfilePage() {
 
   async function handleSave() {
     setUpdating(true)
+    const cleanedData = normalizeFormData(formData)
+    setFormData(cleanedData)
+
     const { error } = await supabase
       .from('perfis')
       .update({
-        primeiro_nome: formData.primeiro_nome,
-        apelido: formData.apelido,
-        telefone: formData.telefone,
-        bio: formData.bio
+        primeiro_nome: cleanedData.primeiro_nome,
+        apelido: cleanedData.apelido,
+        telefone: cleanedData.telefone,
+        bio: cleanedData.bio
       })
       .eq('id', perfil?.id)
 
@@ -234,6 +250,7 @@ export default function ProfilePage() {
                   className="w-full bg-[#f8fafc] border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 font-semibold focus:ring-2 focus:ring-[#004a99] focus:border-transparent outline-none transition"
                   value={formData.primeiro_nome}
                   onChange={(e) => setFormData({...formData, primeiro_nome: e.target.value})}
+                  onBlur={() => setFormData(prev => ({ ...prev, primeiro_nome: normalizeInputValue(prev.primeiro_nome) }))}
                 />
               </div>
               <div className="space-y-2">
@@ -242,6 +259,7 @@ export default function ProfilePage() {
                   className="w-full bg-[#f8fafc] border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 font-semibold focus:ring-2 focus:ring-[#004a99] focus:border-transparent outline-none transition"
                   value={formData.apelido}
                   onChange={(e) => setFormData({...formData, apelido: e.target.value})}
+                  onBlur={() => setFormData(prev => ({ ...prev, apelido: normalizeInputValue(prev.apelido) }))}
                 />
               </div>
               <div className="space-y-2">
@@ -251,6 +269,7 @@ export default function ProfilePage() {
                   placeholder="+351 --- --- ---"
                   value={formData.telefone}
                   onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                  onBlur={() => setFormData(prev => ({ ...prev, telefone: normalizeInputValue(prev.telefone) }))}
                 />
               </div>
             </div>
@@ -281,6 +300,7 @@ export default function ProfilePage() {
                 placeholder="A tua jornada no Rotary..."
                 value={formData.bio}
                 onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                onBlur={() => setFormData(prev => ({ ...prev, bio: normalizeInputValue(prev.bio) }))}
               />
             </div>
 
