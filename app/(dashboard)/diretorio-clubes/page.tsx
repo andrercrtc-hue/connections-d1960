@@ -11,7 +11,11 @@ export default function DiretorioClubes() {
   const [clubes, setClubes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-
+  const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'Rotary' | 'Rotaract'>('Todos')
+  const [favoritos, setFavoritos] = useState<string[]>([]) // Guarda IDs dos clubes favoritos
+  const [verApenasFavoritos, setVerApenasFavoritos] = useState(false)
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
+  
   useEffect(() => {
     async function loadClubes() {
       setLoading(true)
@@ -26,10 +30,13 @@ export default function DiretorioClubes() {
     loadClubes()
   }, [])
 
-  const clubesFiltrados = clubes.filter(clube => 
-    clube.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    clube.local_reuniao?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const clubesFiltrados = clubes.filter(clube => {
+    const matchesSearch = clube.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filtroTipo === 'Todos' || clube.tipo === filtroTipo;
+    const matchesFav = !verApenasFavoritos || favoritos.includes(clube.id);
+
+    return matchesSearch && matchesType && matchesFav;
+    });
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-96 text-gray-400 gap-4">
@@ -63,12 +70,58 @@ export default function DiretorioClubes() {
         </div>
         
         <div className="flex items-center gap-3 w-full lg:w-auto font-bold">
-          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-6 py-4 rounded-2xl text-sm text-[#002d5e] hover:bg-gray-50 transition shadow-sm">
-            <Heart size={16} className="text-gray-300" /> Favoritos
+          <button 
+            onClick={() => setVerApenasFavoritos(!verApenasFavoritos)}
+            className={`flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-6 py-4 rounded-2xl text-sm text-[#002d5e] hover:bg-gray-50 transition shadow-sm ${verApenasFavoritos ? 'bg-red-50 border-red-200' : ''}`}
+          >
+            <Heart size={16} className={verApenasFavoritos ? 'fill-red-500 text-red-500' : 'text-gray-300'} /> 
+            {verApenasFavoritos ? 'Ver Todos' : 'Favoritos'}
           </button>
-          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-6 py-4 rounded-2xl text-sm text-[#002d5e] hover:bg-gray-50 transition shadow-sm">
-            <Filter size={16} className="text-gray-300" /> Filtrar
-          </button>
+          <div className="relative flex-1 lg:flex-none">
+            {/* O BOTÃO PRINCIPAL */}
+            <button 
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              className={`w-full flex items-center justify-center gap-2 bg-white border px-6 py-4 rounded-2xl text-sm text-[#002d5e] transition shadow-sm ${showFilterMenu ? 'border-blue-500 ring-2 ring-blue-50' : 'border-gray-100 hover:bg-gray-50'}`}
+            >
+              <Filter size={16} className={filtroTipo !== 'Todos' ? 'text-blue-600' : 'text-gray-300'} /> 
+              <span>{filtroTipo === 'Todos' ? 'Filtrar' : filtroTipo}</span>
+            </button>
+
+            {/* A JANELA DO FILTRO (DROPDOWN) */}
+            {showFilterMenu && (
+              <>
+                {/* Overlay invisível para fechar ao clicar fora */}
+                <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
+                
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-[24px] shadow-2xl z-20 p-2 animate-in zoom-in-95 duration-200">
+                  <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-300">Tipo de Unidade</div>
+                  
+                  <button 
+                    onClick={() => { setFiltroTipo('Rotary'); setShowFilterMenu(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition ${filtroTipo === 'Rotary' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 text-gray-700'}`}
+                  >
+                    Rotary Clubs
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setFiltroTipo('Rotaract'); setShowFilterMenu(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition ${filtroTipo === 'Rotaract' ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}
+                  >
+                    Rotaract Clubs
+                  </button>
+
+                  <div className="my-2 border-t border-gray-50" />
+
+                  <button 
+                    onClick={() => { setFiltroTipo('Todos'); setShowFilterMenu(false); }}
+                    className="w-full text-left px-4 py-3 rounded-xl text-sm font-black text-red-500 hover:bg-red-50 transition"
+                  >
+                    Limpar Filtros
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-[#002d5e] px-8 py-4 rounded-2xl text-sm font-black text-white hover:bg-[#001b3d] transition shadow-xl">
             <Map size={16} /> Ver no Mapa
           </button>
