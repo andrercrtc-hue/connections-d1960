@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
   Bell, Calendar, FileText, Users, Wallet, 
-  ArrowRight, Download, Upload, Plus, ExternalLink, Clock, Globe
+  ArrowRight, Download, Upload, Plus, ExternalLink, Clock, Globe,
+  Pencil
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -270,7 +271,7 @@ export default function PaginaDinamicaClube() {
                       href={`/diretorio-clubes/${clubeIdUrl}/anuncios`}
                       className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
                     >
-                      <Plus size={16} /> Novo Anúncio
+                      <Pencil size={16} /> Editar Anúncios
                     </Link>
                   )}
                 </div>
@@ -294,15 +295,6 @@ export default function PaginaDinamicaClube() {
                           {anuncio.descricao}
                         </p>
                         
-                        {/* Botão de apagar que só aparece para gestores */}
-                        {perfil?.nivel >= 2 && (
-                          <button 
-                            onClick={() => apagarAnuncio(anuncio.id)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        )}
                       </div>
                     ))
                   ) : (
