@@ -12,6 +12,32 @@ export default function OMeuClube() {
   const [clube, setClube] = useState<any>(null)
   const [equipa, setEquipa] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const publicarNovoAnuncio = async () => {
+    // Para testarmos agora sem criar um Modal complexo, vamos usar o 'prompt' do navegador
+    const titulo = window.prompt("Título do Anúncio:");
+    const descricao = window.prompt("Conteúdo do Anúncio:");
+    
+    if (!titulo || !descricao) return; // Cancela se estiver vazio
+
+    const { data, error } = await supabase
+      .from('anuncios')
+      .insert([
+        { 
+          titulo, 
+          descricao, 
+          tipo: 'urgente', // Podes mudar isto depois
+          clube_id: perfil.clube_id,
+          criado_por: perfil.id 
+        }
+      ]);
+
+    if (error) {
+      alert("Erro: " + error.message);
+    } else {
+      alert("Publicado! Faz refresh para ver.");
+      // No futuro, aqui chamamos a função para atualizar a lista automaticamente
+    }
+  };
 
   useEffect(() => {
     async function carregarDados() {
@@ -116,7 +142,7 @@ export default function OMeuClube() {
             </div>
             {perfil?.nivel >= 2 && (
               <button className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-100 transition">
-                + PUBLICAR AVISO
+                PUBLICAR AVISO
               </button>
             )}
           </div>
