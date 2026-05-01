@@ -94,34 +94,51 @@ export default function DetalheClube({ params }: { params: Promise<{ id: string 
 
         {/* Cartão Azul de Reuniões */}
         <div className="bg-[#003b7a] text-white rounded-[32px] p-8 shadow-xl space-y-6">
-          <div className="flex items-center gap-3 border-b border-white/20 pb-4">
+        <div className="flex items-center gap-3 border-b border-white/20 pb-4">
             <Clock size={24} />
             <h3 className="text-2xl font-black">Reuniões</h3>
-          </div>
-          
-          <div className="space-y-4">
+        </div>
+        
+        <div className="space-y-4">
+            
+            {/* QUANDO */}
             <div className="bg-white/10 rounded-2xl p-4">
-              <div className="flex justify-between items-start mb-1">
+            <div className="flex justify-between items-start mb-1">
                 <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
                 <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-2 py-0.5 rounded uppercase">Presencial</span>
-              </div>
-              <p className="font-bold">{clube.dia_reuniao || 'Terça-feira'}, {clube.hora_reuniao || '20:00'}</p>
+            </div>
+            <p className="font-bold">
+                {/* Lê diretamente do Supabase. Se vazio, não mostra nada */}
+                {clube.dia_reuniao ? `${clube.dia_reuniao}, ${clube.hora_reuniao}` : 'A definir'}
+            </p>
             </div>
 
+            {/* LOCALIZAÇÃO */}
             <div className="bg-white/10 rounded-2xl p-4">
-              <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-1 block">Localização</span>
-              <p className="font-bold">{clube.local_reuniao || 'Sede do Clube'}</p>
-              <p className="text-sm text-gray-300">{clube.morada_completa || 'Contacte-nos para a morada exata'}</p>
+            <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-1 block">Localização</span>
+            <p className="font-bold">
+                {/* Lê o campo local_reuniao que já existia na tua tabela inicial */}
+                {clube.local_reuniao || 'A definir'}
+            </p>
+            <p className="text-sm text-gray-300">
+                {/* Lê a morada completa, se existir */}
+                {clube.morada_completa || ''}
+            </p>
             </div>
 
+            {/* LÍNGUA */}
             <div className="bg-white/10 rounded-2xl p-4 flex items-center justify-between">
-              <div>
+            <div>
                 <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
-                <p className="font-bold">{clube.lingua_reuniao || 'Português'}</p>
-              </div>
-              <Globe className="text-white/50" />
+                <p className="font-bold">
+                {/* Lê do Supabase, falha para 'Português' se estiver vazio */}
+                {clube.lingua_reuniao || 'Português'}
+                </p>
             </div>
-          </div>
+            <Globe className="text-white/50" />
+            </div>
+            
+        </div>
         </div>
       </div>
 
