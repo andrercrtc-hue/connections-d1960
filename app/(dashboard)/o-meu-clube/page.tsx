@@ -39,6 +39,25 @@ export default function OMeuClube() {
       // No futuro, aqui chamamos a função para atualizar a lista automaticamente
     }
   };
+  
+  const apagarAnuncio = async (id: string) => {
+  // 1. Pedir confirmação para não apagar por engano
+  const confirmar = window.confirm("Tens a certeza que queres apagar este anúncio?");
+  if (!confirmar) return;
+
+  // 2. Apagar na base de dados do Supabase
+  const { error } = await supabase
+    .from('anuncios')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert("Erro ao apagar: " + error.message);
+  } else {
+    // 3. Atualizar a lista no ecrã imediatamente (sem refresh)
+    setAnuncios(prev => prev.filter(anuncio => anuncio.id !== id));
+  }
+};
 
   useEffect(() => {
     async function carregarDados() {
@@ -143,7 +162,7 @@ export default function OMeuClube() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 space-y-10">
-        {/* --- SECÇÃO 1: ANÚNCIOS --- */}
+        {/* --- SECÇÃO 1: ANÚNCIOS DINÂMICOS --- */}
         <section className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-[#002d5e]">
@@ -152,7 +171,7 @@ export default function OMeuClube() {
             </div>
             {perfil?.nivel >= 2 && (
               <button 
-                onClick={publicarNovoAnuncio} // É aqui que ligas a lógica ao botão
+                onClick={publicarNovoAnuncio}
                 className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-100 transition"
               >
                 + PUBLICAR AVISO
@@ -161,20 +180,44 @@ export default function OMeuClube() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-2xl flex flex-col justify-center">
-              <span className="text-[10px] font-black text-red-600 uppercase mb-1">Urgente</span>
-              <h3 className="font-bold text-[#002d5e]">Prazos de Inscrição na Convenção Distrital</h3>
-              <p className="text-sm text-red-700/70">As inscrições encerram na próxima sexta-feira, dia 15 de Setembro.</p>
-            </div>
-            <div className="bg-gray-50 border-l-4 border-gray-300 p-6 rounded-2xl flex flex-col justify-center">
-              <span className="text-[10px] font-black text-gray-500 uppercase mb-1">Documentação</span>
-              <h3 className="font-bold text-[#002d5e]">Novos Estatutos Aprovados</h3>
-              <p className="text-sm text-gray-500">Os novos estatutos já estão disponíveis para consulta no repositório.</p>
-            </div>
+            {anuncios.length > 0 ? (
+              anuncios.map((anuncio) => (
+                <div 
+                  key={anuncio.id} 
+                  className={`${
+                    anuncio.tipo === 'urgente' ? 'bg-red-50 border-red-500' : 'bg-gray-50 border-gray-300'
+                  } border-l-4 p-6 rounded-2xl flex flex-col justify-center relative group`}
+                >
+                  <span className={`text-[10px] font-black uppercase mb-1 ${
+                    anuncio.tipo === 'urgente' ? 'text-red-600' : 'text-gray-500'
+                  }`}>
+                    {anuncio.tipo}
+                  </span>
+                  <h3 className="font-bold text-[#002d5e]">{anuncio.titulo}</h3>
+                  <p className={`text-sm ${anuncio.tipo === 'urgente' ? 'text-red-700/70' : 'text-gray-500'}`}>
+                    {anuncio.descricao}
+                  </p>
+                  
+                  {/* Botão de apagar que só aparece para gestores */}
+                  {perfil?.nivel >= 2 && (
+                    <button 
+                      onClick={() => apagarAnuncio(anuncio.id)}
+                      className="absolute top-4 right-4 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="col-span-2 py-10 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+                <p className="text-gray-400 text-sm italic">Não existem anúncios publicados de momento.</p>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* --- SECÇÃO: INFORMAÇÕES DE REUNIÃO (Horizontal) --- */}
+        {/* --- SECÇÃO: INFORMAÇÕES DE REUNIÃO  --- */}
         <section className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
           {/* Detalhe estético de fundo */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
