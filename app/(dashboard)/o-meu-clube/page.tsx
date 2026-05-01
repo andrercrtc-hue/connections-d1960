@@ -182,11 +182,11 @@ export default function OMeuClube() {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
                 <span className="bg-[#fca311] text-[#002d5e] text-[8px] font-black px-2 py-0.5 rounded uppercase">
-                  {clube?.modalidade_reuniao || 'Presencial'}
+                  {clube?.tipo_reuniao || 'Presencial'}
                 </span>
               </div>
               <p className="text-lg font-bold leading-tight">
-                {clube?.dia_semana || 'A definir'}
+                {clube?.dia_reuniao || 'A definir'}
               </p>
               <p className="text-xs text-white/60">
                 {clube?.hora_reuniao ? `Às ${clube.hora_reuniao}` : 'Contacte o clube para o horário'}
