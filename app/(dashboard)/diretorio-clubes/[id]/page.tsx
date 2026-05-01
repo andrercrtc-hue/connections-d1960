@@ -3,37 +3,46 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Clock, MapPin, Globe, Mail, Phone, Share2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { use } from 'react' // Adiciona este import no topo
 
-export default function DetalheClube({ params }: { params: { id: string } }) {
+export default function DetalheClube({ params }: { params: Promise<{ id: string }> }) {
+  // "Desembrulha" o ID usando a função use()
+  const resolvedParams = use(params)
+  const id = resolvedParams.id
+
   const [clube, setClube] = useState<any>(null)
   const [lideranca, setLideranca] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function carregarDados() {
-      // 1. Vai buscar o Clube
-      const { data: clubeData } = await supabase
+      if (!id) return // Segurança extra
+
+      const { data: clubeData, error } = await supabase
         .from('clubes')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .single()
       
+      if (error) {
+        console.error("Erro Supabase:", error.message)
+      }
+
       if (clubeData) setClube(clubeData)
 
-      // 2. Vai buscar os Membros/Direção deste Clube
       const { data: perfisData } = await supabase
         .from('perfis')
         .select('*')
-        .eq('clube_id', params.id)
-        .not('cargo_clube', 'is', null) // Traz apenas quem tem cargo
+        .eq('clube_id', id)
+        .not('cargo_clube', 'is', null)
       
       if (perfisData) setLideranca(perfisData)
-      
       setLoading(false)
     }
 
     carregarDados()
-  }, [params.id])
+  }, [id]) // Usa o id aqui
+
 
   if (loading) return <div className="p-20 text-center font-bold text-gray-400">A carregar detalhes do clube...</div>
   if (!clube) return <div className="p-20 text-center font-bold text-red-500">Clube não encontrado.</div>
