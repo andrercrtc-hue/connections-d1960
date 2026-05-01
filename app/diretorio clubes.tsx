@@ -1,3 +1,4 @@
+//diretorio-clubes/[id]/page.tsx - Página de detalhes do clube, acessada ao clicar num clube específico no diretório. Exibe informações detalhadas sobre o clube, incluindo descrição, reuniões, localização e liderança.
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'

@@ -1,3 +1,4 @@
+//o meu clube - página principal do clube, com detalhes, anúncios, equipa, etc.
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -39,7 +40,7 @@ export default function OMeuClube() {
       // No futuro, aqui chamamos a função para atualizar a lista automaticamente
     }
   };
-  
+
   const apagarAnuncio = async (id: string) => {
   // 1. Pedir confirmação para não apagar por engano
   const confirmar = window.confirm("Tens a certeza que queres apagar este anúncio?");
