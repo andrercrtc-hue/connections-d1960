@@ -12,7 +12,7 @@ export default function EquipaDistrital() {
   const [equipaFiltrada, setEquipaFiltrada] = useState<any[]>([])
   const [comissoes, setComissoes] = useState<any[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
-  const [viewMode, setViewMode] = useState<'admin' | 'user'>('admin')
+  const [viewMode, setViewMode] = useState<'admin' | 'user'>('user')
   const [loading, setLoading] = useState(true)
 
   // Estados da Mensagem do Governador
@@ -43,7 +43,6 @@ export default function EquipaDistrital() {
       const cargoD = perfil?.cargo_distrital?.toLowerCase() || ''
       const temAcesso = cargoD.includes('governador') || cargoD.includes('secretario') || cargoD.includes('administrador')
       setIsAdmin(temAcesso)
-      if (!temAcesso) setViewMode('user')
     }
 
     // 1. Carregar Perfis com dados de comissões
@@ -347,6 +346,11 @@ export default function EquipaDistrital() {
           <div>
             <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Equipa Distrital</h1>
           </div>
+          {isAdmin && (
+            <button onClick={() => setViewMode('admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
+              <Edit2 size={16}/> Editar
+            </button>
+          )}
         </div>
       )}
 
