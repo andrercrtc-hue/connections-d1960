@@ -16,7 +16,7 @@ export function Sidebar() {
     { icon: <Award size={20}/>, label: "Equipa Distrital", path: "/equipa-distrital" },
     { icon: <Briefcase size={20}/>, label: "Projetos", path: "/dashboard/projetos" },
     { icon: <Calendar size={20}/>, label: "Calendário", path: "/dashboard/calendario" },
-    { icon: <Users size={20}/>, label: "Diretório", path: "/dashboard/diretorio" },
+    { icon: <Users size={20}/>, label: "Diretório de Clubes", path: "/diretorio-clubes" },
     { icon: <ClipboardList size={20}/>, label: "Relatórios", path: "/dashboard/relatorios" },
   ]
 

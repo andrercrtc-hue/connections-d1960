@@ -21,12 +21,19 @@ export default function OMeuClube() {
 
       const { data: perfilData } = await supabase
         .from('perfis')
-        .select('*, clubes(*)')
+        .select(`
+          *,
+          clubes(*),
+          cargos_clube_config (nivel_acesso)
+        `)
         .eq('id', user.id)
         .single()
 
       if (perfilData) {
-        setPerfil(perfilData)
+        setPerfil({
+          ...perfilData,
+          nivel: perfilData.cargos_clube_config?.nivel_acesso || 1
+        })
         setClube(perfilData.clubes)
 
         // 2. Carregar a Equipa do Clube (Adaptado da Equipa Distrital)
@@ -43,6 +50,22 @@ export default function OMeuClube() {
     }
     carregarDados()
   }, [])
+
+  const alterarCargoMembro = async (membroId: string, novoCargo: string) => {
+    const { error } = await supabase
+      .from('perfis')
+      .update({ cargo_clube: novoCargo })
+      .eq('id', membroId)
+
+    if (error) {
+      alert("Erro ao atualizar cargo: " + error.message)
+    } else {
+      // Atualiza a lista localmente para refletir a mudança instantaneamente
+      setEquipa(prev => prev.map(m => 
+        m.id === membroId ? { ...m, cargo_clube: novoCargo } : m
+      ))
+    }
+  }
 
   if (loading) return <div className="p-20 text-center font-bold text-gray-400">A carregar o seu clube...</div>
 
@@ -193,7 +216,22 @@ export default function OMeuClube() {
                 </div>
                 <div>
                   <h4 className="font-black text-[#002d5e] leading-tight">{membro.nome_completo}</h4>
-                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{membro.cargo_clube}</p>
+                  {perfil?.id !== membro.id ? (
+                    <select
+                      value={membro.cargo_clube || 'Membro'}
+                      onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
+                      className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none transition-all cursor-pointer"
+                    >
+                      <option value="Membro">Membro</option>
+                      <option value="Presidente">Presidente</option>
+                      <option value="Secretário">Secretário</option>
+                      <option value="Tesoureiro">Tesoureiro</option>
+                      <option value="Vice-Presidente">Vice-Presidente</option>
+                      <option value="Protocolo">Protocolo</option>
+                    </select>
+                  ) : (
+                    <span className="text-[9px] text-gray-300 font-bold italic">Tu próprio</span>
+                  )}
                   <p className="text-[10px] text-gray-400">2025-2026</p>
                 </div>
               </div>
