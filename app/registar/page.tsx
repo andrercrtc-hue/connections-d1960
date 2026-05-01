@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react'
@@ -22,6 +22,23 @@ export default function RegistarPage() {
     password: '',
     confirm_password: ''
   })
+
+  // Estados para o clube e tipo
+  const [tipoSelecionado, setTipoSelecionado] = useState<'Rotary' | 'Rotaract' | ''>('')
+  const [clubeId, setClubeId] = useState('')
+  const [todosClubes, setTodosClubes] = useState<any[]>([])
+
+  // Carregar clubes ao montar a página
+  useEffect(() => {
+    async function fetchClubes() {
+      const { data } = await supabase.from('clubes').select('id, nome, tipo').order('nome')
+      if (data) setTodosClubes(data)
+    }
+    fetchClubes()
+  }, [])
+
+  // Filtrar a lista com base no tipo escolhido
+  const clubesFiltrados = todosClubes.filter(c => c.tipo === tipoSelecionado)
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +73,8 @@ export default function RegistarPage() {
             primeiro_nome: formData.primeiro_nome,
             apelido: formData.apelido,
             email: formData.email,
+            clube_id: clubeId,
+            tipo: tipoSelecionado,
             cargo_clube: 'Membro',
             cargo_distrital: 'Não membro',
             ordem_equipa_distrital: 99
@@ -197,6 +216,52 @@ export default function RegistarPage() {
                   </button>
                 </div>
               </div>
+
+              {/* SELEÇÃO DE TIPO (Rotary ou Rotaract) */}
+              <div className="space-y-3 pt-2">
+                <label className="text-xs font-bold text-[#002d5e] uppercase">Tipo de Membro</label>
+                <div className="grid grid-cols-2 gap-4">
+                  {['Rotary', 'Rotaract'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => { setTipoSelecionado(t as any); setClubeId(''); }}
+                      className={`py-3 rounded-xl border-2 font-bold transition-all ${
+                        tipoSelecionado === t 
+                        ? 'border-[#002d5e] bg-[#002d5e] text-white shadow-lg' 
+                        : 'border-gray-100 text-gray-400 hover:border-gray-200'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* SELEÇÃO DO CLUBE (Só aparece após escolher o tipo) */}
+              {tipoSelecionado && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="text-xs font-bold text-[#002d5e] uppercase">Selecionar Clube</label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={clubeId}
+                      onChange={(e) => setClubeId(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl py-3 px-4 text-sm font-medium text-[#002d5e] outline-none focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
+                    >
+                      <option value="">Escolha o seu clube...</option>
+                      {clubesFiltrados.map((clube) => (
+                        <option key={clube.id} value={clube.id}>
+                          {clube.nome}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      ↓
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button 
                 type="submit" disabled={loading}
