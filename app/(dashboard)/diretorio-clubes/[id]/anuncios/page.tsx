@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
   Send, Filter, ChevronLeft, ChevronRight, 
-  MessageSquare, AlertCircle, Clock 
+  MessageSquare, AlertCircle, Clock, Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -74,6 +74,22 @@ export default function ComunicacaoClube() {
     }
   }
 
+      const apagarAnuncio = async (anuncioId: string) => {
+      if (!window.confirm("Tens a certeza que queres eliminar este anúncio?")) return;
+
+      const { error } = await supabase
+        .from('anuncios')
+        .delete()
+        .eq('id', anuncioId);
+
+      if (error) {
+        alert("Erro ao apagar: " + error.message);
+      } else {
+        // Atualiza a lista local filtrando o anúncio apagado
+        setAnuncios(prev => prev.filter(a => a.id !== anuncioId));
+      }
+    };
+
   if (loading) return <div className="p-20 text-center font-black">A carregar painel de comunicação...</div>
 
   return (
@@ -82,7 +98,7 @@ export default function ComunicacaoClube() {
       {/* HEADER */}
       <header className="space-y-2">
         <div className="flex items-center gap-4">
-          <Link href={`/diretorio-clubes/${params.id}`} className="text-gray-400 hover:text-[#002d5e] transition">
+          <Link href={`/diretorio-clubes/${params.id}`} className="text-gray-500 hover:text-[#002d5e] transition">
             <ChevronLeft size={24} />
           </Link>
           <h1 className="text-4xl font-black text-[#002d5e] tracking-tight">Comunicação do Clube</h1>
@@ -104,7 +120,7 @@ export default function ComunicacaoClube() {
 
             <form onSubmit={handlePublicar} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Título</label>
+                <label className="text-[10px] font-black uppercase text-gray-9 ml-1">Título</label>
                 <input 
                   type="text"
                   required
@@ -116,7 +132,7 @@ export default function ComunicacaoClube() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Prioridade</label>
+                  <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Prioridade</label>
                   <select 
                     value={form.tipo}
                     className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm outline-none cursor-pointer font-bold text-[#002d5e]"
@@ -127,7 +143,7 @@ export default function ComunicacaoClube() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Expira em</label>
+                  <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Expira em</label>
                   <input 
                     type="date"
                     className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm outline-none"
@@ -137,7 +153,7 @@ export default function ComunicacaoClube() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Mensagem</label>
+                <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Mensagem</label>
                 <textarea 
                   rows={6}
                   required
@@ -175,36 +191,41 @@ export default function ComunicacaoClube() {
           <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center">
               <h2 className="text-lg font-black text-[#002d5e]">Histórico de Anúncios</h2>
-              <Filter size={18} className="text-gray-400" />
+              <Filter size={18} className="text-gray-500" />
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-gray-50/30 text-[10px] font-black uppercase text-gray-400">
-                  <tr>
-                    <th className="px-8 py-4">Título</th>
-                    <th className="px-8 py-4">Tipo</th>
-                    <th className="px-8 py-4 text-right">Data</th>
+                <thead>
+                  <tr className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-50">
+                    <th className="pb-4 italic">Título</th>
+                    <th className="pb-4 italic text-center">Tipo</th>
+                    <th className="pb-4 italic text-center">Data</th>
+                    <th className="pb-4 italic text-right">Ações</th> {/* Nova Coluna */}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {anuncios.map((anuncio) => (
                     <tr key={anuncio.id} className="group hover:bg-gray-50/50 transition">
-                      <td className="px-8 py-5">
+                      <td className="py-4">
                         <p className="font-bold text-[#002d5e] text-sm">{anuncio.titulo}</p>
-                        <p className="text-[10px] text-gray-400 line-clamp-1">{anuncio.descricao}</p>
+                        <p className="text-[10px] text-gray-500 line-clamp-1">{anuncio.descricao}</p>
                       </td>
-                      <td className="px-8 py-5">
-                        <span className={`text-[9px] font-black px-2 py-1 rounded uppercase ${
-                          anuncio.tipo === 'urgente' 
-                          ? 'bg-red-100 text-red-600' 
-                          : 'bg-blue-100 text-blue-600'
-                        }`}>
+                      <td className="py-4 text-center">
+                        <span className="text-[9px] font-black px-2 py-1 rounded bg-blue-50 text-blue-600 uppercase">
                           {anuncio.tipo}
                         </span>
                       </td>
-                      <td className="px-8 py-5 text-right text-xs text-gray-400 font-medium">
-                        {new Date(anuncio.criado_at).toLocaleDateString('pt-PT')}
+                      <td className="py-4 text-center text-[10px] text-gray-500 font-medium">
+                        {new Date(anuncio.criado_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 text-right">
+                        <button 
+                          onClick={() => apagarAnuncio(anuncio.id)}
+                          className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
                   ))}
