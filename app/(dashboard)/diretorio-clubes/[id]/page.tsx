@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
   Bell, Calendar, FileText, Users, Wallet, 
-  ArrowRight, Download, Upload, Plus, ExternalLink 
+  ArrowRight, Download, Upload, Plus, ExternalLink, Clock, Globe
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -194,31 +194,53 @@ export default function PaginaDinamicaClube() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 space-y-10">
-          {/* --- CASO 1: VISÃO PÚBLICA (Imagem 1) --- */}
+          {/* --- CASO 1: VISÃO PÚBLICA (Estilo exato da imagem image_223b37.png) --- */}
           {modoVisao === 'publico' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {/* Coluna Sobre o Clube */}
-              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm">
-                <h2 className="text-2xl font-black text-[#002d5e] mb-4 uppercase tracking-tight">Sobre o Clube</h2>
-                <p className="text-gray-500 leading-relaxed font-medium">
-                  {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
+              
+              {/* COLUNA ESQUERDA: Sobre o Clube */}
+              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[40px] p-12 shadow-sm">
+                <h2 className="text-3xl font-black text-[#002d5e] mb-6">Sobre o Clube</h2>
+                <p className="text-gray-500 leading-relaxed text-lg font-medium">
+                  {clube?.descricao || "O Rotaract Club é uma instituição dedicada à promoção da paz, ao combate de doenças e ao apoio à educação local. Mantemos uma rede vibrante de profissionais que dedicam o seu tempo a projetos de impacto social transformador."}
                 </p>
               </div>
 
-              {/* Coluna Card de Reuniões Vertical */}
-              <div className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
-                <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-                  <Calendar size={20} className="text-[#fca311]" />
-                  <h2 className="text-xl font-black uppercase tracking-tight">Reuniões</h2>
-                </div>
-                <div className="space-y-6">
-                  <div>
-                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Quando</span>
-                    <p className="font-bold">{clube?.dia_reuniao || 'A definir'}</p>
+              {/* COLUNA DIREITA: Card de Reuniões Azul */}
+              <div className="bg-[#002d5e] rounded-[40px] p-10 text-white shadow-2xl flex flex-col gap-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Clock size={24} className="text-white" />
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Localização</span>
-                    <p className="font-bold">{clube?.local_reuniao || 'Sede do Clube'}</p>
+                  <h2 className="text-2xl font-black">Reuniões</h2>
+                </div>
+
+                <div className="space-y-4">
+                  {/* QUANDO */}
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px] relative">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
+                      <span className="bg-[#fca311] text-[#002d5e] text-[8px] font-black px-2 py-0.5 rounded uppercase">
+                        {clube?.tipo_reuniao || 'Presencial'}
+                      </span>
+                    </div>
+                    <p className="text-lg font-bold">{clube?.dia_reuniao || 'A definir'}</p>
+                  </div>
+
+                  {/* LOCALIZAÇÃO */}
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px]">
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-2">Localização</span>
+                    <p className="text-lg font-bold">{clube?.local_reuniao || 'Local a definir'}</p>
+                    <p className="text-white/40 text-xs mt-1 italic">Contacte-nos para a morada exata</p>
+                  </div>
+
+                  {/* LÍNGUA */}
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px] flex justify-between items-center">
+                    <div>
+                      <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
+                      <p className="text-lg font-bold">Português</p>
+                    </div>
+                    <Globe size={20} className="text-white/20" />
                   </div>
                 </div>
               </div>
@@ -237,12 +259,12 @@ export default function PaginaDinamicaClube() {
                     <h2 className="text-xl font-black uppercase tracking-tight">Anúncios do Clube</h2>
                   </div>
                   {perfil?.nivel >= 2 && (
-                    <button 
-                      onClick={publicarNovoAnuncio}
+                    <Link 
+                      href={`/diretorio-clubes/${clubeIdUrl}/anucios`}
                       className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
                     >
                       <Plus size={16} /> Novo Anúncio
-                    </button>
+                    </Link>
                   )}
                 </div>
 
