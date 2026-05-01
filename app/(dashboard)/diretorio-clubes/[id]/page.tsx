@@ -24,6 +24,13 @@ export default function DetalheClube({ params }: { params: Promise<{ id: string 
         .eq('id', id)
         .single()
       
+        // --- ADICIONA ESTAS DUAS LINHAS AQUI PARA DEBUG ---
+        console.log("-----------------------------------------")
+        console.log("DADOS RECEBIDOS DO SUPABASE PARA O CLUBE:", clubeData)
+        console.log("ERRO DO SUPABASE (SE HOUVER):", error)
+        console.log("-----------------------------------------")
+        // ---------------------------------------------------
+        
       if (error) {
         console.error("Erro Supabase:", error.message)
       }
