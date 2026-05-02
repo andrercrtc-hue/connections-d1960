@@ -179,12 +179,12 @@ export default function PaginaDinamicaClube() {
           )}
 
           {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
-            <button 
-              onClick={() => alert("Abrir modal de edição")}
-              className="bg-[#fca311] hover:bg-orange-500 text-[#002d5e] px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm font-black transition-all shadow-lg"
+            <Link 
+              href={`/diretorio-clubes/${clubeIdUrl}/editar-capa`}
+              className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
             >
-              <Plus size={16} /> Editar Página
-            </button>
+              <Pencil size={16} /> Editar Página
+            </Link>
           )}
         </div>
       </div>
@@ -319,9 +319,12 @@ export default function PaginaDinamicaClube() {
                   </div>
                   {/* AÇÃO EXCLUSIVA DE GESTÃO */}
                   {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
-                    <button className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg">
-                      <Pencil size={16} /> Editar Detalhes
-                    </button>
+                    <Link 
+                      href={`/diretorio-clubes/${clubeIdUrl}/dados-reuniao`}
+                      className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
+                    >
+                      <Pencil size={16} /> Editar Reuniões
+                    </Link>
                   )}
                 </div>
 
