@@ -60,7 +60,7 @@ export default function PaginaDinamicaClube() {
         const { data: equipaRelData } = await supabase
           .from('clube_equipa')
           .select(`
-            cargo,
+            cargo_nome, 
             perfis (
               id,
               primeiro_nome,
@@ -71,10 +71,10 @@ export default function PaginaDinamicaClube() {
           .eq('clube_id', clubeIdUrl);
 
         if (equipaRelData) {
-          // Formatamos para que o objeto tenha a estrutura que o resto do código espera
+          // 2. Mapear usando cargo_nome para o estado 'equipa'
           const equipaFormatada = equipaRelData.map((rel: any) => ({
             ...rel.perfis,
-            cargo: rel.cargo
+            cargo_nome: rel.cargo_nome
           }));
           setEquipa(equipaFormatada);
         }
@@ -111,29 +111,29 @@ export default function PaginaDinamicaClube() {
         if (perfilData) {
           let nivelAcesso = 1;
 
-          // NOVO: Lê os cargos do utilizador neste clube através da tabela 'clube_equipa'
+          // 1. Procuramos o cargo do utilizador NESTE clube específico
           const { data: userRoles } = await supabase
             .from('clube_equipa')
-            .select('cargo_nome')
+            .select('cargo_nome') // Coluna correta na tabela 'clube_equipa'
             .eq('perfil_id', user.id)
             .eq('clube_id', clubeIdUrl);
 
           if (userRoles && userRoles.length > 0) {
+            // 2. Extraímos os nomes dos cargos (ex: ["Presidente"])
             const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
 
-            if (cargosNames.length > 0) {
-              // NOVO: Lê o nível de acesso na tabela 'cargos_clube_config' fazendo a relação com o cargo
-              const { data: configData } = await supabase
-                .from('cargos_clube_config')
-                .select('nivel_acesso')
-                .in('cargo', cargosNames);
+            // 3. Cruzamos com a tabela de configurações para saber o nível
+            const { data: configData } = await supabase
+              .from('cargos_clube_config')
+              .select('nivel_acesso')
+              .in('cargo', cargosNames); // Coluna correta na tabela 'cargos_clube_config'
 
-              if (configData && configData.length > 0) {
-                // Caso tenha vários cargos no clube, fica com o nível de acesso mais alto
-                nivelAcesso = Math.max(...configData.map(c => c.nivel_acesso || 1));
-              }
+            if (configData && configData.length > 0) {
+              // 4. Atribuímos o nível mais alto que o utilizador tiver
+              nivelAcesso = Math.max(...configData.map(c => c.nivel_acesso || 1));
             }
           }
+
 
           setPerfil({
             ...perfilData,
@@ -562,7 +562,7 @@ export default function PaginaDinamicaClube() {
                             <span className="text-[10px] font-bold text-blue-600 uppercase">
                               {membro.cargo}
                             </span>
-                            {/* Mantém o aviso que és tu */}
+                            {/* viso que és tu */}
                             <span className="text-[8px] font-black text-orange-500 uppercase italic">
                               O teu cargo
                             </span>
