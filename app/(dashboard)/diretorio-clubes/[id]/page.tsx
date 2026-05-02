@@ -245,7 +245,7 @@ export default function PaginaDinamicaClube() {
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
-                      <p className="font-bold">Português</p>
+                      <p className="text-lg font-bold">{clube?.lingua_reuniao || 'Local a definir'}</p>
                     </div>
                     <Globe size={16} className="text-white/20" />
                   </div>
@@ -360,7 +360,7 @@ export default function PaginaDinamicaClube() {
                   <div className="space-y-2 border-l border-white/10 pl-8">
                     <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Língua Oficial</span>
                     <div className="flex items-center gap-2">
-                      <p className="text-lg font-bold">Português</p>
+                      <p className="text-lg font-bold">{clube?.lingua_reuniao || 'Local a definir'}</p>
                       <ExternalLink size={14} className="text-white/40" />
                     </div>
                   </div>
@@ -460,9 +460,20 @@ export default function PaginaDinamicaClube() {
       {/* 4. SECÇÃO COMUM: LIDERANÇA E EQUIPA (Visível para Público, Sócios e Gestão)*/}
       {/* ========================================================================== */}
           <section className="space-y-4 pt-10 border-t border-gray-50">
-            <div className="flex items-center gap-2 text-[#002d5e]">
-              <Users size={20} />
-              <h2 className="text-xl font-black uppercase tracking-tight">Equipa do Clube</h2>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-[#002d5e]">
+                <Users size={20} />
+                <h2 className="text-xl font-black uppercase tracking-tight">Equipa do Clube</h2>
+              </div>
+              {/* AÇÃO EXCLUSIVA DE GESTÃO */}
+              {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+                <Link 
+                  href={`/diretorio-clubes/${clubeIdUrl}/equipa`}
+                  className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
+                >
+                  <Pencil size={16} /> Editar Equipa
+                </Link>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {equipa.map((membro) => (
