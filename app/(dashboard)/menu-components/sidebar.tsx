@@ -30,7 +30,7 @@ export function Sidebar() {
 
   const menuItems = [
     { icon: <LayoutDashboard size={20}/>, label: "Painel Principal", path: "/dashboard" },
-    { icon: <Home size={20}/>,  label: "O meu Clube", path: clubeId ? `/diretorio-clubes/${clubeId}` : '#' },
+    { icon: <Home size={20}/>, label: "O meu Clube", path: clubeId ? `/diretorio-clubes/${clubeId}?view=gestao` : '#' },
     { icon: <Award size={20}/>, label: "Equipa Distrital", path: "/equipa-distrital" },
     { icon: <Briefcase size={20}/>, label: "Projetos", path: "/dashboard/projetos" },
     { icon: <Calendar size={20}/>, label: "Calendário", path: "/dashboard/calendario" },

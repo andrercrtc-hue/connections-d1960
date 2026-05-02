@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation' 
+import { useParams, useSearchParams } from 'next/navigation' 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
@@ -13,13 +13,15 @@ import Link from 'next/link'
 
 export default function PaginaDinamicaClube() {
   const params = useParams()
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get('view');
   const clubeIdUrl = params.id as string // Captura o ID do URL
   const [perfil, setPerfil] = useState<any>(null)
   const [clube, setClube] = useState<any>(null)
   const [equipa, setEquipa] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [anuncios, setAnuncios] = useState<any[]>([]) // Novo estado para os anúncios
-  const [modoVisao, setModoVisao] = useState<'publico' | 'gestao'>('publico');
+  const [modoVisao, setModoVisao] = useState<'publico' | 'gestao' | 'socio'> (viewParam === 'gestao' ? 'gestao' : (viewParam === 'socio' ? 'socio' : 'publico'));
 
   
   const apagarAnuncio = async (id: string) => {
@@ -140,7 +142,6 @@ export default function PaginaDinamicaClube() {
               <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
                 Distrito 1960 • {clube?.tipo}
               </span>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight">{clube?.nome}</h1>
             </div>
 
           <div className="flex gap-3">
@@ -196,40 +197,49 @@ export default function PaginaDinamicaClube() {
               </div>
 
               {/* COLUNA DIREITA: Card de Reuniões Azul */}
-              <div className="bg-[#002d5e] rounded-[40px] p-10 text-white shadow-2xl flex flex-col gap-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-white/10 rounded-lg">
-                    <Clock size={24} className="text-white" />
+              <div className="bg-[#002244] rounded-[32px] p-6 text-white shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="bg-white/10 p-2 rounded-lg">
+                    <Clock size={20} className="text-[#fca311]" />
                   </div>
-                  <h2 className="text-2xl font-black">Reuniões</h2>
+                  <h2 className="text-xl font-black uppercase tracking-tight">Reuniões</h2>
                 </div>
 
                 <div className="space-y-4">
-                  {/* QUANDO */}
-                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px] relative">
-                    <div className="flex justify-between items-start mb-2">
+                  {/* CAMPO QUANDO: Periocidade, Dia e Horas */}
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div className="flex items-center justify-between mb-1">
                       <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">Quando</span>
                       <span className="bg-[#fca311] text-[#002d5e] text-[8px] font-black px-2 py-0.5 rounded uppercase">
                         {clube?.tipo_reuniao || 'Presencial'}
                       </span>
                     </div>
-                    <p className="text-lg font-bold">{clube?.dia_reuniao || 'A definir'}</p>
+                    
+                    <p className="text-lg font-bold leading-tight">
+                      {/* Ex: Semanalmente à Terça-feira */}
+                      {clube?.periodicidade_reuniao || 'Semanalmente'} às {clube?.dia_reuniao || 'dia a definir'}
+                    </p>
+                    
+                    <p className="text-sm text-white/60 mt-1">
+                      {/* Ex: Às 21:00:00 */}
+                      {clube?.hora_reuniao ? `Início às ${clube.hora_reuniao}` : 'Horário a definir'}
+                    </p>
                   </div>
 
                   {/* LOCALIZAÇÃO */}
-                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px]">
-                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-2">Localização</span>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Localização</span>
                     <p className="text-lg font-bold">{clube?.local_reuniao || 'Local a definir'}</p>
-                    <p className="text-white/40 text-xs mt-1 italic">Contacte-nos para a morada exata</p>
+                    <p className="text-[10px] text-white/40 italic mt-1">Contacte-nos para a morada exata</p>
                   </div>
 
                   {/* LÍNGUA */}
-                  <div className="bg-white/5 border border-white/10 p-5 rounded-[24px] flex justify-between items-center">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Língua</span>
-                      <p className="text-lg font-bold">Português</p>
+                      <p className="font-bold">Português</p>
                     </div>
-                    <Globe size={20} className="text-white/20" />
+                    <Globe size={16} className="text-white/20" />
                   </div>
                 </div>
               </div>
