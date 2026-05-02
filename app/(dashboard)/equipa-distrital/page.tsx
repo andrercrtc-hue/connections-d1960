@@ -117,11 +117,39 @@ export default function EquipaDistrital() {
         }
       });
 
-      // Ordenação final
-      // Ordenação final baseada no campo ordem_exibir
-      const listaOrdenada = listaExpandida.sort((a, b) => 
-        (a.ordem_exibir || 99) - (b.ordem_exibir || 99)
-      );
+      // --- ORDENAÇÃO AGRUPADA POR SÓCIO ---
+      // 1. Encontra a melhor (menor) ordem de exibição de cada sócio
+      const melhorOrdemPorSocio = new Map<string, number>();
+      listaExpandida.forEach(item => {
+        const currentBest = melhorOrdemPorSocio.get(item.id) ?? 99;
+        const itemOrder = item.tipo === 'distrital' ? (item.ordem_exibir || 99) : 99;
+        if (itemOrder < currentBest) {
+          melhorOrdemPorSocio.set(item.id, itemOrder);
+        }
+      });
+
+      // 2. Ordena a lista final garantindo que os cargos da mesma pessoa ficam sequenciais
+      const listaOrdenada = listaExpandida.sort((a, b) => {
+        const bestA = melhorOrdemPorSocio.get(a.id) ?? 99;
+        const bestB = melhorOrdemPorSocio.get(b.id) ?? 99;
+
+        // Prioridade 1: Melhor ordem global do sócio
+        if (bestA !== bestB) return bestA - bestB;
+
+        // Prioridade 2: Se for a mesma pessoa (agrupar cargos)
+        if (a.id === b.id) {
+          // Cargos distritais aparecem primeiro que comissões
+          if (a.tipo !== b.tipo) return a.tipo === 'distrital' ? -1 : 1;
+          // Dentro do mesmo tipo, ordena pela ordem individual ou alfabeticamente
+          if (a.tipo === 'distrital') return (a.ordem_exibir || 99) - (b.ordem_exibir || 99);
+          return (a.comissao_exibir || '').localeCompare(b.comissao_exibir || '');
+        }
+
+        // Prioridade 3: Pessoas diferentes com a mesma ordem, desempatar por nome
+        const nomeA = `${a.primeiro_nome || ''} ${a.apelido || ''}`.trim();
+        const nomeB = `${b.primeiro_nome || ''} ${b.apelido || ''}`.trim();
+        return nomeA.localeCompare(nomeB);
+      });
 
       setEquipaFiltrada(listaOrdenada);
 
