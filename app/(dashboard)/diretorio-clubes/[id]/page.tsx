@@ -145,27 +145,37 @@ export default function PaginaDinamicaClube() {
             </div>
 
           <div className="flex gap-3">
-            {/* 1. BOTÃO "VER O MEU CLUBE": Aparece se eu pertencer a este clube e estiver na visão pública */}
-            {perfil?.clube_id === clubeIdUrl && modoVisao === 'publico' && (
+        {/* ========================================================================== */}
+        {/* SELETORES DE VISÃO PARA MEMBROS DO CLUBE                                   */}
+        {/* Permite alternar entre Público, Sócio e Gestão para testar a interface     */}
+        {/* ========================================================================== */}
+        {perfil?.clube_id === clubeIdUrl && (
+          <div className="flex bg-[#001b3d]/50 p-1 rounded-xl backdrop-blur-md border border-white/10">
+            <button 
+              onClick={() => setModoVisao('publico')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'publico' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
+            >
+              Visão Pública
+            </button>
+            <button 
+              onClick={() => setModoVisao('socio')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'socio' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
+            >
+              Visão de Sócio
+            </button>
+            {/* Apenas Nível 2 ou superior vê a aba de Gestão */}
+            {perfil?.nivel >= 2 && (
               <button 
                 onClick={() => setModoVisao('gestao')}
-                className="bg-[#fca311] hover:bg-orange-500 text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black transition-all shadow-lg"
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'gestao' ? 'bg-[#fca311] text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
               >
-                <Users size={16} /> VER O MEU CLUBE
+                Gestão
               </button>
             )}
+          </div>
+        )}
 
-            {/* 2. BOTÃO "VISÃO PÚBLICA": Aparece quando estou a gerir, para poder voltar atrás */}
-            {modoVisao === 'gestao' && (
-              <button 
-                onClick={() => setModoVisao('publico')}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold border border-white/30 backdrop-blur-md"
-              >
-                VISÃO PÚBLICA
-              </button>
-            )}
-
-            {/* 3. BOTÃO "EDITAR PÁGINA": Agora só aparece se eu for editor E estiver no modo de gestão */}
+        {/* BOTÃO DE EDITAR PÁGINA: Apenas visível na gestão e para níveis autorizados */}
             {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
               <button 
                 onClick={() => alert("Abrir modal de edição")}
@@ -257,7 +267,8 @@ export default function PaginaDinamicaClube() {
                     <Bell size={20} />
                     <h2 className="text-xl font-black uppercase tracking-tight">Anúncios do Clube</h2>
                   </div>
-                  {perfil?.nivel >= 2 && (
+              {/* AÇÃO EXCLUSIVA DE GESTÃO */}
+              {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
                     <Link 
                       href={`/diretorio-clubes/${clubeIdUrl}/anuncios`}
                       className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
@@ -296,7 +307,7 @@ export default function PaginaDinamicaClube() {
                 </div>
               </section>
 
-              {/* --- SECÇÃO 2: INFORMAÇÕES DE REUNIÃO (O código azul horizontal) --- */}
+          {/* --- SECÇÃO: INFORMAÇÕES DE REUNIÃO (Sócios apenas leem, Gestão pode editar) --- */}
               <section className="bg-[#002d5e] rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
                 {/* Detalhe estético de fundo */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
@@ -343,7 +354,8 @@ export default function PaginaDinamicaClube() {
                       <p className="text-lg font-bold">Português</p>
                       <ExternalLink size={14} className="text-white/40" />
                     </div>
-                    {perfil?.nivel >= 2 && (
+                {/* AÇÃO EXCLUSIVA DE GESTÃO */}
+                {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
                       <button className="text-[10px] font-black text-[#fca311] hover:underline uppercase mt-2">
                         Editar Detalhes
                       </button>
@@ -401,8 +413,9 @@ export default function PaginaDinamicaClube() {
                   </button>
                 </div>
               </div>
+          )}
 
-              {/* --- SECÇÃO 5: REPOSITÓRIO --- */}
+          {/* --- SECÇÃO: REPOSITÓRIO (Sócios transferem, Gestão faz upload) --- */}
               <section className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 text-[#002d5e]">
@@ -410,7 +423,10 @@ export default function PaginaDinamicaClube() {
                     <h2 className="text-xl font-black uppercase tracking-tight">Repositório do Clube</h2>
                   </div>
                   <div className="flex gap-2">
-                    <button className="bg-[#002d5e] text-white p-2.5 rounded-lg hover:bg-blue-900 transition"><Upload size={18}/></button>
+                {/* AÇÃO EXCLUSIVA DE GESTÃO */}
+                {modoVisao === 'gestao' && (
+                  <button className="bg-[#002d5e] text-white p-2.5 rounded-lg hover:bg-blue-900 transition"><Upload size={18}/></button>
+                )}
                     <button className="border border-gray-200 text-[#002d5e] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-50 transition">Explorar Tudo</button>
                   </div>
                 </div>
@@ -438,7 +454,9 @@ export default function PaginaDinamicaClube() {
             </> 
           )}
 
-          {/* --- SECÇÃO COMUM: LIDERANÇA (Fora de qualquer condição) --- */}
+      {/* ========================================================================== */}
+      {/* 4. SECÇÃO COMUM: LIDERANÇA E EQUIPA (Visível para Público, Sócios e Gestão)*/}
+      {/* ========================================================================== */}
           <section className="space-y-4 pt-10 border-t border-gray-50">
             <div className="flex items-center gap-2 text-[#002d5e]">
               <Users size={20} />
