@@ -36,28 +36,24 @@ export default function EquipaDistrital() {
 
   async function loadData() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      const { data: perfil } = await supabase.from('perfis').select('*').eq('id', user.id).single()
-      const cargoD = perfil?.cargo_distrital?.toLowerCase() || ''
-      const temAcesso = cargoD.includes('governador') || cargoD.includes('secretario') || cargoD.includes('administrador')
-      setIsAdmin(temAcesso)
-    }
 
-    // 1. Carregar Perfis com dados de comissões
-    const { data: perfis } = await supabase
+    // 1. Carregar Perfis e as suas relações com a Equipa Distrital
+    const { data: perfis, error } = await supabase
       .from('perfis')
       .select(`
         *,
+        distrito_equipa (
+          cargo_nome,
+          ordem,
+          ano_rotario
+        ),
         comissao_membros (
           cargo_na_comissao,
-          comissoes (
-            nome
-          )
+          comissoes ( nome )
         )
       `)
-      .order('ordem_equipa_distrital', { ascending: true })
+      // Filtramos para trazer apenas quem tem um cargo na nova tabela distrito_equipa
+      // ou podes trazer todos e filtrar no JavaScript como já fazias
       .order('primeiro_nome', { ascending: true })
 
     if (perfis) {
@@ -65,17 +61,16 @@ export default function EquipaDistrital() {
       const listaExpandida: any[] = [];
 
       perfis.forEach(perfil => {
-        // A. Cargos Distritais (Gabinete Executivo)
-        if (perfil.cargo_distrital && perfil.cargo_distrital.toLowerCase() !== 'não membro') {
-          const cargos = perfil.cargo_distrital.split(',').map((c: string) => c.trim());
-          
-          cargos.forEach((cargo: string, idx: number) => {
+        // A. Cargos vindos da NOVA tabela distrito_equipa
+        if (perfil.distrito_equipa && perfil.distrito_equipa.length > 0) {
+          perfil.distrito_equipa.forEach((de: any, idx: number) => {
             listaExpandida.push({
               ...perfil,
               id_unico: `${perfil.id}-distrital-${idx}`,
-              cargo_exibir: cargo,
+              cargo_exibir: de.cargo_nome, // Nome do cargo vindo da nova tabela
               comissao_exibir: '-',
-              tipo: 'distrital'
+              tipo: 'distrital',
+              ordem_exibir: de.ordem || 99
             });
           });
         }
