@@ -154,6 +154,12 @@ export default function PaginaDinamicaClube() {
         </div>
 
         <div className="relative z-10 space-y-3 text-white w-full">
+          <div className="flex flex-col items-start gap-4">
+            {/* O Nome do Clube em Grande (Por cima) */}
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+              {clube?.nome || 'O Meu Clube'}
+            </h1>
+          </div>
           <div className="flex justify-between items-end w-full">
             <div className="space-y-3">
               <span className="bg-[#fca311] text-[#002d5e] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
