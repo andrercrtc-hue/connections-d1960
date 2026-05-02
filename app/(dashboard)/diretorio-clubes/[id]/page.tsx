@@ -104,14 +104,40 @@ export default function PaginaDinamicaClube() {
       if (user) {
         const { data: perfilData } = await supabase
           .from('perfis')
-          .select('*, cargos_clube_config(nivel_acesso)')
+          .select('*')
           .eq('id', user.id)
           .single();
 
         if (perfilData) {
+          let nivelAcesso = 1;
+
+          // NOVO: Lê os cargos do utilizador neste clube através da tabela 'clube_equipa'
+          const { data: userRoles } = await supabase
+            .from('clube_equipa')
+            .select('cargo_nome')
+            .eq('perfil_id', user.id)
+            .eq('clube_id', clubeIdUrl);
+
+          if (userRoles && userRoles.length > 0) {
+            const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
+
+            if (cargosNames.length > 0) {
+              // NOVO: Lê o nível de acesso na tabela 'cargos_clube_config' fazendo a relação com o cargo
+              const { data: configData } = await supabase
+                .from('cargos_clube_config')
+                .select('nivel_acesso')
+                .in('cargo_nome', cargosNames);
+
+              if (configData && configData.length > 0) {
+                // Caso tenha vários cargos no clube, fica com o nível de acesso mais alto
+                nivelAcesso = Math.max(...configData.map(c => c.nivel_acesso || 1));
+              }
+            }
+          }
+
           setPerfil({
             ...perfilData,
-            nivel: perfilData.cargos_clube_config?.nivel_acesso || 1
+            nivel: nivelAcesso
           });
         }
       }
@@ -562,36 +588,7 @@ export default function PaginaDinamicaClube() {
               ))}
             </div>
           </section>
-
-          {/* --- NOVA SECÇÃO: COMISSÕES --- */}
-          <section className="space-y-4 pt-10 border-t border-gray-50">
-            <div className="flex items-center gap-2 text-[#002d5e]">
-              <Users size={20} />
-              <h2 className="text-xl font-black uppercase tracking-tight">Comissões do Clube</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {comissoes.length > 0 ? (
-                comissoes.map((comissao) => (
-                  <div key={comissao.id} className="bg-gray-50 p-6 rounded-[24px] border border-transparent hover:border-gray-200 transition group cursor-default">
-                    <div className="text-[#fca311] mb-3 group-hover:scale-110 transition-transform">
-                       {/* Aqui podes usar um ícone dinâmico se tiveres uma biblioteca ou apenas o nome */}
-                       <Users size={24} /> 
-                    </div>
-                    <h4 className="font-black text-[#002d5e] uppercase text-sm leading-tight">
-                      {comissao.nome}
-                    </h4>
-                    <p className="text-[10px] text-gray-400 mt-2 line-clamp-2">
-                      {comissao.descricao || "Comissão dedicada ao serviço do clube."}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400 text-sm italic col-span-full">Sem comissões definidas.</p>
-              )}
-            </div>
-          </section>
-
+          
         </div>
       </div>
   )
