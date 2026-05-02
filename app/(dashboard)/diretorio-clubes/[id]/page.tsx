@@ -256,8 +256,8 @@ export default function PaginaDinamicaClube() {
             </div>
           )}
 
-          {/* --- CASO 2: VISÃO DE GESTÃO (Imagem 2) --- */}
-          {modoVisao === 'gestao' && (
+          {/* --- CASO 2: VISÃO DE GESTÃO E SÓCIO (Partilhada, mas botões condicionados) --- */}
+          {(modoVisao === 'gestao' || modoVisao === 'socio') && (
             <> {/* O Fragment é OBRIGATÓRIO aqui porque tens várias secções */}
               
               {/* --- SECÇÃO 1: ANÚNCIOS (O código que já tens) --- */}
@@ -476,8 +476,8 @@ export default function PaginaDinamicaClube() {
                       {membro.primeiro_nome} {membro.apelido}
                     </h4>
                     
-                    {/* LÓGICA DE GESTÃO: Só quem é nível 2 (Presidente/Secretário/Tesoureiro) vê os comandos */}
-                    {perfil?.nivel >= 2 ? (
+                    {/* LÓGICA DE GESTÃO: Só na visão de gestão + Nível >= 2 vê os comandos de edição */}
+                    {perfil?.nivel >= 2 && modoVisao === 'gestao' ? (
                       <div className="mt-1">
                         {perfil.id !== membro.id ? (
                           <select
