@@ -130,7 +130,7 @@ export default function PaginaDinamicaClube() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/60 to-transparent"></div>
         </div>
 
-        <div className="relative z-10 space-y-3 text-white w-full">
+        <div className="relative z-10 space-y-3 text-white w-full md:max-w-[70%]">
           <div className="flex flex-col items-start gap-4">
             {/* O Nome do Clube em Grande (Por cima) */}
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
@@ -148,48 +148,48 @@ export default function PaginaDinamicaClube() {
             {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
           </p>
         </div>
+
+        {/* ========================================================================== */}
+        {/* SELETORES DE VISÃO E EDIÇÃO (Canto inferior direito da imagem)             */}
+        {/* ========================================================================== */}
+        <div className="absolute bottom-10 right-8 md:right-12 z-20 flex flex-col md:flex-row items-end md:items-center gap-3">
+          {perfil?.clube_id === clubeIdUrl && (
+            <div className="flex bg-white/10 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg">
+              <button 
+                onClick={() => setModoVisao('publico')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'publico' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
+              >
+                Visão Pública
+              </button>
+              <button 
+                onClick={() => setModoVisao('socio')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'socio' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
+              >
+                Visão de Sócio
+              </button>
+              {perfil?.nivel >= 2 && (
+                <button 
+                  onClick={() => setModoVisao('gestao')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'gestao' ? 'bg-[#fca311] text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
+                >
+                  Gestão
+                </button>
+              )}
+            </div>
+          )}
+
+          {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+            <button 
+              onClick={() => alert("Abrir modal de edição")}
+              className="bg-[#fca311] hover:bg-orange-500 text-[#002d5e] px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm font-black transition-all shadow-lg"
+            >
+              <Plus size={16} /> Editar Página
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 space-y-10">
-          {/* ========================================================================== */}
-          {/* SELETORES DE VISÃO E EDIÇÃO (Movidos para baixo)                           */}
-          {/* ========================================================================== */}
-          <div className="flex justify-end gap-3 -mt-4 mb-2">
-            {perfil?.clube_id === clubeIdUrl && (
-              <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 shadow-sm">
-                <button 
-                  onClick={() => setModoVisao('publico')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'publico' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
-                >
-                  Visão Pública
-                </button>
-                <button 
-                  onClick={() => setModoVisao('socio')}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'socio' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
-                >
-                  Visão de Sócio
-                </button>
-                {perfil?.nivel >= 2 && (
-                  <button 
-                    onClick={() => setModoVisao('gestao')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'gestao' ? 'bg-[#002d5e] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
-                  >
-                    Gestão
-                  </button>
-                )}
-              </div>
-            )}
-
-            {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
-              <button 
-                onClick={() => alert("Abrir modal de edição")}
-                className="bg-[#fca311] hover:bg-[#e5940e] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black transition-all shadow-sm"
-              >
-                <Plus size={16} /> Editar Página
-              </button>
-            )}
-          </div>
-
           {/* --- CASO 1: VISÃO PÚBLICA (Estilo exato da imagem image_223b37.png) --- */}
           {modoVisao === 'publico' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -223,7 +223,7 @@ export default function PaginaDinamicaClube() {
                     
                     <p className="text-lg font-bold leading-tight">
                       {/* Ex: Semanalmente à Terça-feira */}
-                      {clube?.periodicidade_reuniao || 'Semanalmente'} às {clube?.dia_reuniao || 'dia a definir'}
+                      {clube?.periodicidade_reuniao || 'Semanalmente'}  {clube?.dia_reuniao || 'dia a definir'}
                     </p>
                     
                     <p className="text-sm text-white/60 mt-1">
@@ -236,7 +236,9 @@ export default function PaginaDinamicaClube() {
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                     <span className="text-[10px] font-black text-[#fca311] uppercase tracking-widest block mb-1">Localização</span>
                     <p className="text-lg font-bold">{clube?.local_reuniao || 'Local a definir'}</p>
-                    <p className="text-[10px] text-white/40 italic mt-1">Contacte-nos para a morada exata</p>
+                    <p className="text-xs text-white/60">
+                      {clube?.morada_completa || 'Contacte o clube para a morada exata'}
+                    </p>
                   </div>
 
                   {/* LÍNGUA */}
@@ -333,7 +335,7 @@ export default function PaginaDinamicaClube() {
                       </span>
                     </div>
                     <p className="text-lg font-bold leading-tight">
-                      {clube?.dia_reuniao || 'A definir'}
+                      {clube?.periodicidade_reuniao || 'Semanalmente'}  {clube?.dia_reuniao || 'dia a definir'}
                     </p>
                     <p className="text-xs text-white/60">
                       {clube?.hora_reuniao ? `Às ${clube?.hora_reuniao}` : 'Contacte o clube para o horário'}
@@ -347,7 +349,7 @@ export default function PaginaDinamicaClube() {
                       {clube?.local_reuniao || 'Sede do Clube'}
                     </p>
                     <p className="text-xs text-white/60">
-                      Contacte-nos para a morada exata
+                      {clube?.morada_completa || 'Contacte o clube para a morada exata'}
                     </p>
                   </div>
 
