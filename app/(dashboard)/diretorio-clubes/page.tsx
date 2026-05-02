@@ -307,8 +307,14 @@ export default function DiretorioClubes() {
                     <td className="px-8 py-5 text-gray-500 font-medium">
                       {clube.local_reuniao || 'Por definir'}
                     </td>
-                    <td className="px-8 py-5 text-gray-500 font-medium truncate max-w-[200px]">
-                      {clube.email_contacto || 'Sem email'}
+                    <td className="px-8 py-5 text-gray-500 font-medium whitespace-nowrap">
+                      {clube.email_contacto ? (
+                        <a href={`mailto:${clube.email_contacto}`} className="hover:text-[#004a99] transition-colors underline decoration-blue-100 underline-offset-4">
+                          {clube.email_contacto}
+                        </a>
+                      ) : (
+                        <span className="italic text-gray-400">Sem email</span>
+                      )}
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-3">

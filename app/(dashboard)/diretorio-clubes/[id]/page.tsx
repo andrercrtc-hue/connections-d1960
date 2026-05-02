@@ -20,6 +20,7 @@ export default function PaginaDinamicaClube() {
   const [clube, setClube] = useState<any>(null)
   const [equipa, setEquipa] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [comissoes, setComissoes] = useState<any[]>([]) // Novo estado para as comissões
   const [anuncios, setAnuncios] = useState<any[]>([]) // Novo estado para os anúncios
   const [modoVisao, setModoVisao] = useState<'publico' | 'gestao' | 'socio'> (viewParam === 'gestao' ? 'gestao' : (viewParam === 'socio' ? 'socio' : 'publico'));
 
@@ -55,13 +56,36 @@ export default function PaginaDinamicaClube() {
           .single();
         if (clubeData) setClube(clubeData);
 
-        // Carregar Equipa
-        const { data: equipaData } = await supabase
-          .from('perfis')
+        // NOVO: Carregar Equipa via tabela 'clube_equipa' relacionando com 'perfis'
+        const { data: equipaRelData } = await supabase
+          .from('clube_equipa')
+          .select(`
+            cargo_nome,
+            perfis (
+              id,
+              primeiro_nome,
+              apelido,
+              avatar_url
+            )
+          `)
+          .eq('clube_id', clubeIdUrl);
+
+        if (equipaRelData) {
+          // Formatamos para que o objeto tenha a estrutura que o resto do código espera
+          const equipaFormatada = equipaRelData.map((rel: any) => ({
+            ...rel.perfis,
+            cargo_nome: rel.cargo_nome
+          }));
+          setEquipa(equipaFormatada);
+        }
+
+        // NOVO: Carregar Comissões do Clube
+        const { data: comissoesData } = await supabase
+          .from('comissoes')
           .select('*')
-          .eq('clube_id', clubeIdUrl)
-          .not('cargo_clube', 'is', null);
-        if (equipaData) setEquipa(equipaData);
+          .eq('clube_id', clubeIdUrl);
+        
+        if (comissoesData) setComissoes(comissoesData);
 
         // Carregar Anúncios (Verifica se a coluna é 'created_at' ou 'criado_at')
         const { data: anunciosData, error: errAnuncios } = await supabase
@@ -101,16 +125,16 @@ export default function PaginaDinamicaClube() {
 
   const alterarCargoMembro = async (membroId: string, novoCargo: string) => {
     const { error } = await supabase
-      .from('perfis')
-      .update({ cargo_clube: novoCargo })
-      .eq('id', membroId)
+      .from('clube_equipa')
+      .update({ cargo_nome: novoCargo })
+      .match({ clube_id: clubeIdUrl, perfil_id: membroId }) // Adaptado para a nova relação
 
     if (error) {
       alert("Erro ao atualizar cargo: " + error.message)
     } else {
       // Atualiza a lista localmente para refletir a mudança instantaneamente
       setEquipa(prev => prev.map(m => 
-        m.id === membroId ? { ...m, cargo_clube: novoCargo } : m
+        m.id === membroId ? { ...m, cargo_nome: novoCargo } : m
       ))
     }
   }
@@ -495,7 +519,7 @@ export default function PaginaDinamicaClube() {
                       <div className="mt-1">
                         {perfil.id !== membro.id ? (
                           <select
-                            value={membro.cargo_clube || 'Membro'}
+                            value={membro.cargo_nome || 'Membro'}
                             onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
                             className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
                           >
@@ -510,7 +534,7 @@ export default function PaginaDinamicaClube() {
                           <div className="flex flex-col">
                             {/* Mostra o teu cargo real (Presidente) */}
                             <span className="text-[10px] font-bold text-blue-600 uppercase">
-                              {membro.cargo_clube}
+                              {membro.cargo_nome}
                             </span>
                             {/* Mantém o aviso que és tu */}
                             <span className="text-[8px] font-black text-orange-500 uppercase italic">
@@ -523,7 +547,7 @@ export default function PaginaDinamicaClube() {
                       /* O que o utilizador comum vê */
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                          {membro.cargo_clube || 'Membro'}
+                          {membro.cargo_nome || 'Membro'}
                         </span>
                         {perfil?.id === membro.id && (
                           <span className="text-[8px] font-black text-orange-500 uppercase italic">
@@ -539,6 +563,34 @@ export default function PaginaDinamicaClube() {
             </div>
           </section>
 
+          {/* --- NOVA SECÇÃO: COMISSÕES --- */}
+          <section className="space-y-4 pt-10 border-t border-gray-50">
+            <div className="flex items-center gap-2 text-[#002d5e]">
+              <Users size={20} />
+              <h2 className="text-xl font-black uppercase tracking-tight">Comissões do Clube</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {comissoes.length > 0 ? (
+                comissoes.map((comissao) => (
+                  <div key={comissao.id} className="bg-gray-50 p-6 rounded-[24px] border border-transparent hover:border-gray-200 transition group cursor-default">
+                    <div className="text-[#fca311] mb-3 group-hover:scale-110 transition-transform">
+                       {/* Aqui podes usar um ícone dinâmico se tiveres uma biblioteca ou apenas o nome */}
+                       <Users size={24} /> 
+                    </div>
+                    <h4 className="font-black text-[#002d5e] uppercase text-sm leading-tight">
+                      {comissao.nome}
+                    </h4>
+                    <p className="text-[10px] text-gray-400 mt-2 line-clamp-2">
+                      {comissao.descricao || "Comissão dedicada ao serviço do clube."}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm italic col-span-full">Sem comissões definidas.</p>
+              )}
+            </div>
+          </section>
 
         </div>
       </div>
