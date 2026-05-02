@@ -507,9 +507,16 @@ export default function PaginaDinamicaClube() {
                       </div>
                     ) : (
                       /* O que o utilizador comum vê */
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                        {membro.cargo_clube || 'Membro'}
-                      </p>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                          {membro.cargo_clube || 'Membro'}
+                        </span>
+                        {perfil?.id === membro.id && (
+                          <span className="text-[8px] font-black text-orange-500 uppercase italic">
+                            O teu cargo
+                          </span>
+                        )}
+                      </div>
                     )}
                     <p className="text-[10px] text-gray-400">2025-2026</p>
                   </div>
