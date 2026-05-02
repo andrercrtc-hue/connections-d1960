@@ -60,7 +60,7 @@ export default function PaginaDinamicaClube() {
         const { data: equipaRelData } = await supabase
           .from('clube_equipa')
           .select(`
-            cargo_nome,
+            cargo,
             perfis (
               id,
               primeiro_nome,
@@ -74,7 +74,7 @@ export default function PaginaDinamicaClube() {
           // Formatamos para que o objeto tenha a estrutura que o resto do código espera
           const equipaFormatada = equipaRelData.map((rel: any) => ({
             ...rel.perfis,
-            cargo_nome: rel.cargo_nome
+            cargo: rel.cargo
           }));
           setEquipa(equipaFormatada);
         }
@@ -114,19 +114,19 @@ export default function PaginaDinamicaClube() {
           // NOVO: Lê os cargos do utilizador neste clube através da tabela 'clube_equipa'
           const { data: userRoles } = await supabase
             .from('clube_equipa')
-            .select('cargo_nome')
+            .select('cargo')
             .eq('perfil_id', user.id)
             .eq('clube_id', clubeIdUrl);
 
           if (userRoles && userRoles.length > 0) {
-            const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
+            const cargosNames = userRoles.map(r => r.cargo).filter(Boolean);
 
             if (cargosNames.length > 0) {
               // NOVO: Lê o nível de acesso na tabela 'cargos_clube_config' fazendo a relação com o cargo
               const { data: configData } = await supabase
                 .from('cargos_clube_config')
                 .select('nivel_acesso')
-                .in('cargo_nome', cargosNames);
+                .in('cargo', cargosNames);
 
               if (configData && configData.length > 0) {
                 // Caso tenha vários cargos no clube, fica com o nível de acesso mais alto
@@ -152,7 +152,7 @@ export default function PaginaDinamicaClube() {
   const alterarCargoMembro = async (membroId: string, novoCargo: string) => {
     const { error } = await supabase
       .from('clube_equipa')
-      .update({ cargo_nome: novoCargo })
+      .update({ cargo: novoCargo })
       .match({ clube_id: clubeIdUrl, perfil_id: membroId }) // Adaptado para a nova relação
 
     if (error) {
@@ -160,7 +160,7 @@ export default function PaginaDinamicaClube() {
     } else {
       // Atualiza a lista localmente para refletir a mudança instantaneamente
       setEquipa(prev => prev.map(m => 
-        m.id === membroId ? { ...m, cargo_nome: novoCargo } : m
+        m.id === membroId ? { ...m, cargo: novoCargo } : m
       ))
     }
   }
@@ -545,7 +545,7 @@ export default function PaginaDinamicaClube() {
                       <div className="mt-1">
                         {perfil.id !== membro.id ? (
                           <select
-                            value={membro.cargo_nome || 'Membro'}
+                            value={membro.cargo || 'Membro'}
                             onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
                             className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
                           >
@@ -560,7 +560,7 @@ export default function PaginaDinamicaClube() {
                           <div className="flex flex-col">
                             {/* Mostra o teu cargo real (Presidente) */}
                             <span className="text-[10px] font-bold text-blue-600 uppercase">
-                              {membro.cargo_nome}
+                              {membro.cargo}
                             </span>
                             {/* Mantém o aviso que és tu */}
                             <span className="text-[8px] font-black text-orange-500 uppercase italic">
@@ -573,7 +573,7 @@ export default function PaginaDinamicaClube() {
                       /* O que o utilizador comum vê */
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                          {membro.cargo_nome || 'Membro'}
+                          {membro.cargo || 'Membro'}
                         </span>
                         {perfil?.id === membro.id && (
                           <span className="text-[8px] font-black text-orange-500 uppercase italic">
