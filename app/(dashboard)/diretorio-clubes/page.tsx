@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { 
-  Search, Map, Filter, Heart, Mail, MapPin, 
-  ArrowRight
+  Search, Map, Filter, Heart, Mail, MapPin, LayoutGrid, ArrowRight
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -15,6 +14,7 @@ export default function DiretorioClubes() {
   const [favoritos, setFavoritos] = useState<string[]>([]) // Guarda IDs dos clubes favoritos
   const [verApenasFavoritos, setVerApenasFavoritos] = useState(false)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
   
   useEffect(() => {
     // 1. LER OS FAVORITOS GUARDADOS NO NAVEGADOR
@@ -163,16 +163,24 @@ export default function DiretorioClubes() {
               </>
             )}
           </div>
-          <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-[#002d5e] px-8 py-4 rounded-2xl text-sm font-black text-white hover:bg-[#001b3d] transition shadow-xl">
-            <Map size={16} /> Ver no Mapa
+          <button 
+            onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-[#002d5e] px-8 py-4 rounded-2xl text-sm font-black text-white hover:bg-[#001b3d] transition shadow-xl"
+          >
+            {viewMode === 'grid' ? (
+              <><Map size={16} /> Ver no Mapa</>
+            ) : (
+              <><LayoutGrid size={16} /> Ver em Grelha</>
+            )}
           </button>
         </div>
       </div>
 
-      {/* GRELHA DE CLUBES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {clubesFiltrados.map((clube) => (
-          <div key={clube.id} className="group bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col">
+      {/* GRELHA DE CLUBES OU MAPA */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {clubesFiltrados.map((clube) => (
+            <div key={clube.id} className="group bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col">
             
             {/* IMAGEM E CAPA */}
             <div className="relative h-60 overflow-hidden">
@@ -246,7 +254,18 @@ export default function DiretorioClubes() {
           </div>
         ))}
       </div>
-
+    ) : (
+      /* O TEU CONTENTOR DO MAPA VAI AQUI */
+      <div className="w-full h-[600px] bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-200 overflow-hidden flex flex-col items-center justify-center gap-4 animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-500">
+          <Map size={32} />
+        </div>
+        <div className="text-center">
+          <p className="text-[#002d5e] font-black uppercase tracking-widest text-xs">Modo Mapa Ativo</p>
+          <p className="text-gray-400 italic text-sm">O mapa interativo será carregado aqui...</p>
+        </div>
+      </div>
+    )}
     </div>
   )
 }
