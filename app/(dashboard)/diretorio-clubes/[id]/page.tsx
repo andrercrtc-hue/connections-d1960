@@ -20,32 +20,7 @@ export default function PaginaDinamicaClube() {
   const [loading, setLoading] = useState(true)
   const [anuncios, setAnuncios] = useState<any[]>([]) // Novo estado para os anúncios
   const [modoVisao, setModoVisao] = useState<'publico' | 'gestao'>('publico');
-  const publicarNovoAnuncio = async () => {
-    // Para testarmos agora sem criar um Modal complexo, vamos usar o 'prompt' do navegador
-    const titulo = window.prompt("Título do Anúncio:");
-    const descricao = window.prompt("Conteúdo do Anúncio:");
-    
-    if (!titulo || !descricao) return; // Cancela se estiver vazio
 
-    const { data, error } = await supabase
-      .from('anuncios')
-      .insert([
-        { 
-          titulo, 
-          descricao, 
-          tipo: 'urgente', // Podes mudar isto depois
-          clube_id: perfil.clube_id,
-          criado_por: perfil.id 
-        }
-      ]);
-
-    if (error) {
-      alert("Erro: " + error.message);
-    } else {
-      alert("Publicado! Faz refresh para ver.");
-      // No futuro, aqui chamamos a função para atualizar a lista automaticamente
-    }
-  };
   
   const apagarAnuncio = async (id: string) => {
   // 1. Pedir confirmação para não apagar por engano
@@ -72,7 +47,7 @@ export default function PaginaDinamicaClube() {
       if (clubeIdUrl) {
         // Carregar Clube
         const { data: clubeData } = await supabase
-          .from('clubs')
+          .from('clubes')
           .select('*')
           .eq('id', clubeIdUrl)
           .single();
@@ -157,7 +132,7 @@ export default function PaginaDinamicaClube() {
           <div className="flex flex-col items-start gap-4">
             {/* O Nome do Clube em Grande (Por cima) */}
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
-              {clube?.nome || 'O Meu Clube'}
+              {clubes?.nome || 'O Meu Clube'}
             </h1>
           </div>
           <div className="flex justify-between items-end w-full">
@@ -336,7 +311,7 @@ export default function PaginaDinamicaClube() {
                       {clube?.dia_reuniao || 'A definir'}
                     </p>
                     <p className="text-xs text-white/60">
-                      {clube?.hora_reuniao ? `Às ${clube.hora_reuniao}` : 'Contacte o clube para o horário'}
+                      {clube?.hora_reuniao ? `Às ${clube?.hora_reuniao}` : 'Contacte o clube para o horário'}
                     </p>
                   </div>
 
