@@ -114,12 +114,12 @@ export default function PaginaDinamicaClube() {
           // NOVO: Lê os cargos do utilizador neste clube através da tabela 'clube_equipa'
           const { data: userRoles } = await supabase
             .from('clube_equipa')
-            .select('cargo')
+            .select('cargo_nome')
             .eq('perfil_id', user.id)
             .eq('clube_id', clubeIdUrl);
 
           if (userRoles && userRoles.length > 0) {
-            const cargosNames = userRoles.map(r => r.cargo).filter(Boolean);
+            const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
 
             if (cargosNames.length > 0) {
               // NOVO: Lê o nível de acesso na tabela 'cargos_clube_config' fazendo a relação com o cargo
