@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Search, Map, Filter, Heart, Mail, MapPin, LayoutGrid, ArrowRight } from 'lucide-react'
+import { Search, Map, Filter, Heart, Mail, MapPin, LayoutGrid, ArrowRight, Table } from 'lucide-react'
 import Link from 'next/link'
 
 // ==========================================================================
@@ -27,7 +27,7 @@ export default function DiretorioClubes() {
   const [favoritos, setFavoritos] = useState<string[]>([]) // Guarda IDs dos clubes favoritos
   const [verApenasFavoritos, setVerApenasFavoritos] = useState(false)
   const [showFilterMenu, setShowFilterMenu] = useState(false)
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'map' | 'table'>('grid')
   
   useEffect(() => {
     // 1. LER OS FAVORITOS GUARDADOS NO NAVEGADOR
@@ -177,20 +177,22 @@ export default function DiretorioClubes() {
             )}
           </div>
           <button 
-            onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
+            onClick={() => {
+              if (viewMode === 'grid') setViewMode('map')
+              else if (viewMode === 'map') setViewMode('table')
+              else setViewMode('grid')
+            }}
             className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-[#002d5e] px-8 py-4 rounded-2xl text-sm font-black text-white hover:bg-[#001b3d] transition shadow-xl"
           >
-            {viewMode === 'grid' ? (
-              <><Map size={16} /> Ver no Mapa</>
-            ) : (
-              <><LayoutGrid size={16} /> Ver em Grelha</>
-            )}
+            {viewMode === 'grid' && <><Map size={16} /> Ver no Mapa</>}
+            {viewMode === 'map' && <><Table size={16} /> Ver em Tabela</>}
+            {viewMode === 'table' && <><LayoutGrid size={16} /> Ver em Grelha</>}
           </button>
         </div>
       </div>
 
-      {/* GRELHA DE CLUBES OU MAPA */}
-      {viewMode === 'grid' ? (
+      {/* GRELHA, MAPA OU TABELA DE CLUBES */}
+      {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {clubesFiltrados.map((clube) => (
             <div key={clube.id} className="group bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col">
@@ -267,10 +269,69 @@ export default function DiretorioClubes() {
           </div>
         ))}
       </div>
-      ) : (
-            /* Agora chamamos o componente dinâmico que criaste */
-            <MapView clubes={clubesFiltrados} />
+      )}
+      
+      {viewMode === 'map' && (
+        <MapView clubes={clubesFiltrados} />
+      )}
+
+      {viewMode === 'table' && (
+        <div className="bg-white border border-gray-100 rounded-[32px] shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <tr>
+                  <th className="px-8 py-5">Clube</th>
+                  <th className="px-8 py-5">Tipo</th>
+                  <th className="px-8 py-5">Local de Reunião</th>
+                  <th className="px-8 py-5">Email</th>
+                  <th className="px-8 py-5 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {clubesFiltrados.map((clube) => (
+                  <tr key={clube.id} className="hover:bg-gray-50/50 transition group">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                          <img src={clube.capa_url || "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800"} alt={clube.nome} className="w-full h-full object-cover" />
+                        </div>
+                        <span className="font-bold text-[#002d5e]">{clube.nome}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${clube.tipo === 'Rotaract' ? 'bg-pink-50 text-pink-600' : 'bg-blue-50 text-blue-600'}`}>
+                        {clube.tipo || 'Rotary'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-gray-500 font-medium">
+                      {clube.local_reuniao || 'Por definir'}
+                    </td>
+                    <td className="px-8 py-5 text-gray-500 font-medium truncate max-w-[200px]">
+                      {clube.email_contacto || 'Sem email'}
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button onClick={(e) => toggleFavorito(clube.id, e)} className="text-gray-300 hover:text-red-500 transition">
+                          <Heart size={18} className={favoritos.includes(clube.id) ? 'fill-red-500 text-red-500' : ''} />
+                        </button>
+                        <Link href={`/diretorio-clubes/${clube.id}`} className="text-[#002d5e] hover:text-[#fca311] transition font-bold text-xs uppercase tracking-widest flex items-center gap-1">
+                          Ver <ArrowRight size={14}/>
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {clubesFiltrados.length === 0 && (
+            <div className="p-10 text-center text-gray-400 font-medium italic">
+              Nenhum clube encontrado.
+            </div>
           )}
+        </div>
+      )}
     </div>
   )
 }
