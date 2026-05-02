@@ -32,25 +32,43 @@ export default function EquipaDistrital() {
 
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const governador = equipaFiltrada.find(m => m.cargo_distrital?.toLowerCase().includes('governador'))
+  // O Governador passa a ser identificado pelo cargo_exibir (lido de distrito_equipa)
+  const governador = equipaFiltrada.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase().includes('governador'))
 
   async function loadData() {
     setLoading(true)
-    // --- NOVO BLOCO DE PERMISSÕES ---
+    // --- VERIFICAÇÃO DE PERMISSÕES ---
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
+        // Lê o nível de acesso da tabela cargos_clube_config e os cargos distritais da tabela distrito_equipa
         const { data: perfil } = await supabase.from('perfis')
-          .select('nivel_acesso, cargo_distrital')
+          .select(`
+            id,
+            cargos_clube_config ( nivel_acesso ),
+            distrito_equipa ( cargo_nome )
+          `)
           .eq('id', user.id)
           .single()
 
-        // Verifica se o nível de acesso é administrativo (>= 3) 
-        // ou se o cargo contém "Governador" ou "GOV"
-        const temAcesso = (perfil?.nivel_acesso && perfil.nivel_acesso >= 3) || 
-                          perfil?.cargo_distrital?.toLowerCase().includes('governador') ||
-                          perfil?.cargo_distrital?.toLowerCase().includes('gov');
-                          
+        // Extrai o nível de acesso (lidando com retorno em array ou objeto único)
+        let nivelAcesso = 1;
+        if (perfil?.cargos_clube_config) {
+          if (Array.isArray(perfil.cargos_clube_config)) {
+             nivelAcesso = perfil.cargos_clube_config[0]?.nivel_acesso || 1;
+          } else {
+             nivelAcesso = (perfil.cargos_clube_config as any).nivel_acesso || 1;
+          }
+        }
+
+        // Verifica se tem cargo de Governador na tabela distrito_equipa
+        const isGov = perfil?.distrito_equipa?.some((eq: any) => 
+          eq.cargo_nome?.toLowerCase().includes('governador') || 
+          eq.cargo_nome?.toLowerCase().includes('gov')
+        );
+
+        // Verifica se o nível de acesso é administrativo (>= 3) ou se é governador
+        const temAcesso = nivelAcesso >= 3 || isGov;
         setIsAdmin(!!temAcesso)
       }
     // 1. Carregar Perfis e as suas relações com a Equipa Distrital
@@ -100,8 +118,9 @@ export default function EquipaDistrital() {
       });
 
       // Ordenação final
+      // Ordenação final baseada no campo ordem_exibir
       const listaOrdenada = listaExpandida.sort((a, b) => 
-        (a.ordem_equipa_distrital || 99) - (b.ordem_equipa_distrital || 99)
+        (a.ordem_exibir || 99) - (b.ordem_exibir || 99)
       );
 
       setEquipaFiltrada(listaOrdenada);
@@ -146,41 +165,41 @@ export default function EquipaDistrital() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // MANTIDAS AS TUAS FUNÇÕES DE ORDENAÇÃO
-  async function updateOrdemManual(id: string, novaOrdem: number) {
+  // Atualização de ordem manual adaptada para a nova tabela distrito_equipa
+  async function updateOrdemManual(idUnico: string, idRelacao: string, novaOrdem: number) {
     if (isNaN(novaOrdem) || novaOrdem < 1) return
 
-    const membroAtual = equipaFiltrada.find((m) => m.id === id)
+    const membroAtual = equipaFiltrada.find((m) => m.id_unico === idUnico)
     if (!membroAtual) return
 
-    const antigaOrdem = membroAtual.ordem_equipa_distrital || 0
+    const antigaOrdem = membroAtual.ordem_exibir || 0
     if (novaOrdem === antigaOrdem) return
 
     const distritais = equipaFiltrada
       .filter((m) => m.tipo === 'distrital')
-      .map((m) => ({ id: m.id, ordem: m.ordem_equipa_distrital || 99 }))
+      .map((m) => ({ id_relacao: m.id_relacao, ordem: m.ordem_exibir || 99 }))
 
-    const updates: Array<{ id: string; ordem_equipa_distrital: number }> = []
+    const updates: Array<{ id: string; ordem: number }> = []
 
     if (novaOrdem < antigaOrdem) {
       distritais.forEach((m) => {
         if (m.ordem >= novaOrdem && m.ordem < antigaOrdem) {
-          updates.push({ id: m.id, ordem_equipa_distrital: m.ordem + 1 })
+          updates.push({ id: m.id_relacao, ordem: m.ordem + 1 })
         }
       })
     } else {
       distritais.forEach((m) => {
         if (m.ordem <= novaOrdem && m.ordem > antigaOrdem) {
-          updates.push({ id: m.id, ordem_equipa_distrital: m.ordem - 1 })
+          updates.push({ id: m.id_relacao, ordem: m.ordem - 1 })
         }
       })
     }
 
-    updates.push({ id, ordem_equipa_distrital: novaOrdem })
+    updates.push({ id: idRelacao, ordem: novaOrdem })
 
     const results = await Promise.all(
       updates.map((item) =>
-        supabase.from('perfis').update({ ordem_equipa_distrital: item.ordem_equipa_distrital }).eq('id', item.id)
+        supabase.from('distrito_equipa').update({ ordem: item.ordem }).eq('id', item.id)
       )
     )
 
@@ -192,43 +211,33 @@ export default function EquipaDistrital() {
     loadData()
   }
 
+  // Função mantida, mas adaptada para usar os novos identificadores
   async function alterarOrdemSeta(membro: any, direcao: 'subir' | 'descer') {
-    const valorAtual = membro.ordem_equipa_distrital || 0
+    const valorAtual = membro.ordem_exibir || 0
     const novoValor = direcao === 'subir' ? valorAtual - 1 : valorAtual + 1
-    updateOrdemManual(membro.id, novoValor)
+    updateOrdemManual(membro.id_unico, membro.id_relacao, novoValor)
   }
 
   async function handleAtribuirCargo() {
     if (!selectedMember || !novoCargoDistrital.trim()) return
     setIsAssigning(true)
 
-    // 1. Verificar se o membro já tem cargos distritais
-    const cargoAtual = selectedMember.cargo_distrital;
-    let cargoFinal = novoCargoDistrital.trim();
-
-    if (cargoAtual && cargoAtual.toLowerCase() !== 'não membro' && cargoAtual.trim() !== '') {
-      // Se já tem um cargo, verificamos se o novo já existe para evitar duplicados exatos
-      const listaCargos = cargoAtual.split(',').map((c: string) => c.trim());
-      
-      if (!listaCargos.includes(novoCargoDistrital.trim())) {
-        // Acrescentamos o novo cargo à lista existente com uma vírgula
-        cargoFinal = `${cargoAtual}, ${novoCargoDistrital.trim()}`;
-      } else {
-        alert("Este sócio já possui este cargo atribuído.");
-        setIsAssigning(false);
-        return;
-      }
+    // Verifica se o membro já tem o cargo exato atribuído na equipa distrital
+    const rolesExistem = selectedMember.distrito_equipa?.map((r: any) => r.cargo_nome?.toLowerCase());
+    if (rolesExistem?.includes(novoCargoDistrital.trim().toLowerCase())) {
+      alert("Este sócio já possui este cargo atribuído.");
+      setIsAssigning(false);
+      return;
     }
 
-    // 2. Atualizar no Supabase
+    // Insere o novo cargo diretamente na tabela distrito_equipa
     const { error } = await supabase
-      .from('distrito_equipa') // Ou 'clube_equipa' se for no clube
+      .from('distrito_equipa')
       .insert({
         perfil_id: selectedMember.id,
-        cargo_nome: novoCargoDistrital, // O nome do cargo selecionado
+        cargo_nome: novoCargoDistrital.trim(), // O nome do cargo selecionado
         ano_rotario: '2024-25'
       })
-      .eq('id', selectedMember.id)
 
     if (!error) {
       setSearchTerm(''); 
@@ -242,8 +251,9 @@ export default function EquipaDistrital() {
     setIsAssigning(false)
   }
 
-  async function saveEditCargo(id: string) {
-    const { error } = await supabase.from('perfis').update({ cargo_distrital: editCargoValue }).eq('id', id)
+  // Recebe o id_relacao (da tabela distrito_equipa) em vez do id do perfil
+  async function saveEditCargo(idRelacao: string) {
+    const { error } = await supabase.from('distrito_equipa').update({ cargo_nome: editCargoValue }).eq('id', idRelacao)
     if (!error) { setEditingId(null); loadData(); }
   }
 
@@ -251,31 +261,20 @@ export default function EquipaDistrital() {
     if (!confirm("Remover este cargo da equipa distrital?")) return
 
     if (row.tipo === 'distrital') {
+      // Remove a entrada específica da tabela distrito_equipa usando id_relacao
       const { error } = await supabase
         .from('distrito_equipa')
         .delete()
         .eq('id', row.id_relacao); // Apaga a linha específica desta função
         
-      if (!error) loadData();
-    }
-
-    if (row.tipo === 'distrital') {
-      const cargos = (row.cargo_distrital || '').split(',').map((c: string) => c.trim()).filter(Boolean)
-      let removed = false
-      const novaLista = cargos.filter((cargo: string) => {
-        if (!removed && cargo.toLowerCase() === row.cargo_exibir?.toLowerCase()) {
-          removed = true
-          return false
-        }
-        return true
-      })
-
-      const novoCargoDistrital = novaLista.length > 0 ? novaLista.join(', ') : 'Não membro'
-      const payload: any = { cargo_distrital: novoCargoDistrital }
-      if (novaLista.length === 0) payload.ordem_equipa_distrital = 99
-
-      const { error } = await supabase.from('perfis').update(payload).eq('id', row.id)
       if (!error) loadData()
+      else alert('Erro ao remover cargo: ' + error.message)
+      return
+    } else if (row.tipo === 'comissao') {
+      // Remove membro da comissão
+      const { error } = await supabase.from('comissao_membros').delete().eq('id', row.comissao_membro_id)
+      if (!error) loadData()
+      else alert('Erro ao remover da comissão: ' + error.message)
       return
     }
 
@@ -315,11 +314,12 @@ export default function EquipaDistrital() {
 
   function exportEquipeToExcel() {
     if (equipaFiltrada.length === 0) return
-    const header = ['Ordem', 'Membro', 'Função Distrital']
+    const header = ['Ordem', 'Membro', 'Função Distrital', 'Comissão']
     const rows = equipaFiltrada.map((m) => [
-      m.ordem_equipa_distrital ?? '',
+      m.ordem_exibir ?? '',
       `${m.primeiro_nome || ''} ${m.apelido || ''}`.trim(),
-      m.cargo_distrital || ''
+      m.tipo === 'distrital' ? m.cargo_exibir || '' : '',
+      m.tipo === 'comissao' ? m.comissao_exibir || '' : ''
     ])
     const csvContent = [header, ...rows].map(buildCsvRow).join('\r\n')
     const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -508,8 +508,8 @@ export default function EquipaDistrital() {
                           <input 
                             type="number" 
                             min={1}
-                            defaultValue={m.ordem_equipa_distrital || ''} 
-                            onBlur={(e) => updateOrdemManual(m.id, parseInt(e.target.value))} 
+                        defaultValue={m.ordem_exibir || ''} 
+                        onBlur={(e) => updateOrdemManual(m.id_unico, m.id_relacao, parseInt(e.target.value))} 
                             className="w-16 bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-center text-xs font-black outline-none focus:ring-1 focus:ring-blue-400" 
                           />
                         ) : (
@@ -529,8 +529,8 @@ export default function EquipaDistrital() {
 
                       {/* COLUNA CARGO (Usa o cargo_exibir que criámos no loadData) */}
                       <td className="px-8 py-4">
-                        {editingId === m.id ? (
-                          <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-medium text-gray-900 outline-none w-full" />
+                    {editingId === m.id_relacao ? (
+                      <input autoFocus value={editCargoValue} onChange={(e) => setEditCargoValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveEditCargo(m.id_relacao)} className="bg-white border border-blue-300 rounded px-3 py-1.5 text-xs font-medium text-gray-900 outline-none w-full" />
                         ) : (
                           <span className="bg-blue-50 text-[#004a99] px-3 py-1.5 rounded-full text-[10px] font-black uppercase">
                             {m.cargo_exibir}
@@ -545,10 +545,13 @@ export default function EquipaDistrital() {
 
                       {/* COLUNA AÇÕES (Igual) */}
                       <td className="px-8 py-4 text-right">
-                        {editingId === m.id ? (
-                          <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
+                    {editingId === m.id_relacao ? (
+                      <div className="flex justify-end gap-2"><Check onClick={() => saveEditCargo(m.id_relacao)} className="cursor-pointer text-green-500" size={16}/><X onClick={() => setEditingId(null)} className="cursor-pointer text-gray-400" size={16}/></div>
                         ) : (
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 onClick={() => {setEditingId(m.id); setEditCargoValue(m.cargo_distrital)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/><Trash2 onClick={() => removerDaEquipa(m)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/></div>
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {m.tipo === 'distrital' && <Edit2 onClick={() => {setEditingId(m.id_relacao); setEditCargoValue(m.cargo_exibir)}} className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={16}/>}
+                        <Trash2 onClick={() => removerDaEquipa(m)} className="cursor-pointer text-gray-400 hover:text-red-500 transition" size={16}/>
+                      </div>
                         )}
                       </td>
                     </tr>
@@ -636,7 +639,7 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
                  <div className="space-y-3 w-full">
                     <div>
                        <h4 className="font-black text-[#002d5e] text-xl leading-none mb-1.5">{m.primeiro_nome} {m.apelido}</h4>
-                       <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_distrital}</p>
+                   <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_exibir}</p>
                     </div>
                     <div className="space-y-2 pt-2 border-t border-gray-50 text-gray-500 text-sm">
                       <div className="flex items-center gap-2">
