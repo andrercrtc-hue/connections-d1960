@@ -465,13 +465,13 @@ export default function PaginaDinamicaClube() {
                 <Users size={20} />
                 <h2 className="text-xl font-black uppercase tracking-tight">Equipa do Clube</h2>
               </div>
-              {/* AÇÃO EXCLUSIVA DE GESTÃO */}
-              {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+              {/* AÇÃO PARA SÓCIOS E GESTÃO */}
+              {(modoVisao === 'gestao' || modoVisao === 'socio') && (
                 <Link 
-                  href={`/diretorio-clubes/${clubeIdUrl}/equipa`}
+                  href={`/diretorio-clubes/${clubeIdUrl}/equipa-clube`}
                   className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg"
                 >
-                  <Pencil size={16} /> Editar Equipa
+                  <Users size={16} /> Ver Equipa Completa
                 </Link>
               )}
             </div>
