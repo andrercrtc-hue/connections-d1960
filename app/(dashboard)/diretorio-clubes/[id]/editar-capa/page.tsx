@@ -237,6 +237,7 @@ export default function EditarCapaEDetalhes() {
         .from('clubes')
         .update({
           email_contacto: formData.email_contacto,
+          morada_completa: formData.morada_completa,
           descricao: formData.descricao,
           capa_url: urlFinalDaCapa
         })
@@ -418,6 +419,23 @@ export default function EditarCapaEDetalhes() {
                   </div>
                 </div>
               </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Morada Completa</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={formData.morada_completa}
+                    onChange={(e) => setFormData({...formData, morada_completa: e.target.value})}
+                    placeholder="Rua, Número, Código Postal, Localidade"
+                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none transition-all shadow-sm"
+                  />
+                  <div className="absolute right-4 top-4 text-[#fca311]">
+                    <Pencil size={16} />
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
