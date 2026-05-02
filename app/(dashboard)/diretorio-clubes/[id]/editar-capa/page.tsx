@@ -16,7 +16,9 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Camera,
-  Pencil
+  Pencil,
+  Calendar,
+  MapPin
 } from 'lucide-react'
 
 // ==========================================================================
@@ -116,7 +118,12 @@ export default function EditarCapaEDetalhes() {
     email_contacto: '',
     morada_completa: '',
     descricao: '',
-    capa_url: ''
+    capa_url: '',
+    dia_reuniao: '',
+    hora_reuniao: '',
+    periodicidade_reuniao: 'Semanalmente',
+    tipo_reuniao: 'Presencial',
+    local_reuniao: ''
   })
 
   // --- ESTADOS DA IMAGEM E PREVIEW ---
@@ -138,7 +145,7 @@ export default function EditarCapaEDetalhes() {
       try {
         const { data, error } = await supabase
           .from('clubes')
-          .select('nome, ano_fundacao, email_contacto, morada_completa, descricao, capa_url')
+          .select('nome, ano_fundacao, email_contacto, morada_completa, descricao, capa_url, dia_reuniao, hora_reuniao, periodicidade_reuniao, tipo_reuniao, local_reuniao')
           .eq('id', clubeId)
           .single()
 
@@ -152,7 +159,12 @@ export default function EditarCapaEDetalhes() {
             email_contacto: data.email_contacto || '',
             morada_completa: data.morada_completa || '',
             descricao: data.descricao || '',
-            capa_url: data.capa_url || ''
+            capa_url: data.capa_url || '',
+            dia_reuniao: data.dia_reuniao || '',
+            hora_reuniao: data.hora_reuniao || '',
+            periodicidade_reuniao: data.periodicidade_reuniao || 'Semanalmente',
+            tipo_reuniao: data.tipo_reuniao || 'Presencial',
+            local_reuniao: data.local_reuniao || ''
           })
           setPreviewImagem(data.capa_url || null)
         }
@@ -241,7 +253,12 @@ export default function EditarCapaEDetalhes() {
           latitude: coords?.lat || null,             // Guarda a latitude calculada
           longitude: coords?.lon || null,            // Guarda a longitude calculada
           descricao: formData.descricao,
-          capa_url: urlFinalDaCapa
+          capa_url: urlFinalDaCapa,
+          dia_reuniao: formData.dia_reuniao,
+          hora_reuniao: formData.hora_reuniao,
+          periodicidade_reuniao: formData.periodicidade_reuniao,
+          tipo_reuniao: formData.tipo_reuniao,
+          local_reuniao: formData.local_reuniao
         })
         .eq('id', clubeId)
 
@@ -437,6 +454,98 @@ export default function EditarCapaEDetalhes() {
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          {/* SECÇÃO: DADOS DA REUNIÃO */}
+          <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm">
+            <div className="bg-gray-50/50 px-8 py-5 border-b border-gray-100 flex items-center gap-3">
+              <div className="bg-[#002d5e] p-2 rounded-xl text-white">
+                <Calendar size={20} />
+              </div>
+              <h2 className="font-black text-[#002d5e] uppercase tracking-tight">Dados da Reunião</h2>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* DIA DA REUNIÃO */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Dia da Semana</label>
+                  <div className="relative">
+                    <select 
+                      value={formData.dia_reuniao}
+                      onChange={(e) => setFormData({...formData, dia_reuniao: e.target.value})}
+                      className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none appearance-none transition-all shadow-sm"
+                    >
+                      <option value="">Selecionar dia...</option>
+                      <option value="Segunda-feira">Segunda-feira</option>
+                      <option value="Terça-feira">Terça-feira</option>
+                      <option value="Quarta-feira">Quarta-feira</option>
+                      <option value="Quinta-feira">Quinta-feira</option>
+                      <option value="Sexta-feira">Sexta-feira</option>
+                      <option value="Sábado">Sábado</option>
+                      <option value="Domingo">Domingo</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* HORA DA REUNIÃO */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Hora de Início</label>
+                  <div className="relative">
+                    <input 
+                      type="time" 
+                      value={formData.hora_reuniao}
+                      onChange={(e) => setFormData({...formData, hora_reuniao: e.target.value})}
+                      className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* PERIODICIDADE */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Periodicidade</label>
+                  <select 
+                    value={formData.periodicidade_reuniao}
+                    onChange={(e) => setFormData({...formData, periodicidade_reuniao: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none appearance-none transition-all shadow-sm"
+                  >
+                    <option value="Semanalmente">Semanalmente</option>
+                    <option value="Quinzenalmente">Quinzenalmente</option>
+                    <option value="Trissemanalmente">Trissemanalmente</option>
+                    <option value="Mensalmente">Mensalmente</option>
+                  </select>
+                </div>
+
+                {/* TIPO DE REUNIÃO */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Formato</label>
+                  <select 
+                    value={formData.tipo_reuniao}
+                    onChange={(e) => setFormData({...formData, tipo_reuniao: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none appearance-none transition-all shadow-sm"
+                  >
+                    <option value="Presencial">Presencial</option>
+                    <option value="Online">Online</option>
+                    <option value="Híbrida">Híbrida</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* LOCALIZAÇÃO / LINK */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Localização ou Link da Reunião</label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-4 text-gray-400" size={20} />
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Rua do Alecrim, nº 10 ou Link do Zoom"
+                    value={formData.local_reuniao}
+                    onChange={(e) => setFormData({...formData, local_reuniao: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 pl-12 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none transition-all shadow-sm"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
