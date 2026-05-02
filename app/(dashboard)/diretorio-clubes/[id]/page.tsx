@@ -152,7 +152,7 @@ export default function PaginaDinamicaClube() {
   const alterarCargoMembro = async (membroId: string, novoCargo: string) => {
     const { error } = await supabase
       .from('clube_equipa')
-      .update({ cargo: novoCargo })
+      .update({ cargo_nome: novoCargo })
       .match({ clube_id: clubeIdUrl, perfil_id: membroId }) // Adaptado para a nova relação
 
     if (error) {
@@ -160,7 +160,7 @@ export default function PaginaDinamicaClube() {
     } else {
       // Atualiza a lista localmente para refletir a mudança instantaneamente
       setEquipa(prev => prev.map(m => 
-        m.id === membroId ? { ...m, cargo: novoCargo } : m
+        m.id === membroId ? { ...m, cargo_nome: novoCargo } : m
       ))
     }
   }
@@ -545,22 +545,22 @@ export default function PaginaDinamicaClube() {
                       <div className="mt-1">
                         {perfil.id !== membro.id ? (
                           <select
-                            value={membro.cargo || 'Membro'}
+                            value={membro.cargo_nome || 'Membro'}
                             onChange={(e) => alterarCargoMembro(membro.id, e.target.value)}
                             className="bg-gray-50 border border-gray-100 text-[#002d5e] text-[10px] font-bold rounded-lg p-1 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
                           >
-                            <option value="Membro">Membro</option>
                             <option value="Presidente">Presidente</option>
+                            <option value="Vice-Presidente">Vice-Presidente</option>
                             <option value="Secretário">Secretário</option>
                             <option value="Tesoureiro">Tesoureiro</option>
-                            <option value="Vice-Presidente">Vice-Presidente</option>
-                            <option value="Protocolo">Protocolo</option>
+                            
+                            
                           </select>
                         ) : (
                           <div className="flex flex-col">
                             {/* Mostra o teu cargo real (Presidente) */}
                             <span className="text-[10px] font-bold text-blue-600 uppercase">
-                              {membro.cargo}
+                              {membro.cargo_nome}
                             </span>
                             {/* viso que és tu */}
                             <span className="text-[8px] font-black text-orange-500 uppercase italic">
@@ -573,7 +573,7 @@ export default function PaginaDinamicaClube() {
                       /* O que o utilizador comum vê */
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                          {membro.cargo || 'Membro'}
+                          {membro.cargo_nome || 'Membro'}
                         </span>
                         {perfil?.id === membro.id && (
                           <span className="text-[8px] font-black text-orange-500 uppercase italic">
