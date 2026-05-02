@@ -1,17 +1,62 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react' // Adicionado useCallback
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { 
   Image as ImageIcon, Info, FileText, Upload, Save, 
-  ArrowLeft, X, CheckCircle2, AlertCircle 
+  ArrowLeft, X, CheckCircle2, AlertCircle, Camera 
 } from 'lucide-react'
 import Link from 'next/link'
+import Cropper from 'react-easy-crop' // Adicionado o import do Cropper
+
+// --- FUNÇÕES AUXILIARES DE RECORTE (Canvas) ---
+// Estas funções processam a imagem para o tamanho final
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image()
+    image.addEventListener('load', () => resolve(image))
+    image.addEventListener('error', (error) => reject(error))
+    image.setAttribute('crossOrigin', 'anonymous')
+    image.src = url
+  })
+
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: { x: number; y: number; width: number; height: number }
+): Promise<File> {
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) throw new Error('Sem contexto 2D')
+
+  canvas.width = pixelCrop.width
+  canvas.height = pixelCrop.height
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+    0, 0, pixelCrop.width, pixelCrop.height
+  )
+
+  return new Promise((resolve) => {
+    canvas.toBlob((file) => {
+      if (file) resolve(new File([file], 'capa_recortada.jpg', { type: 'image/jpeg' }))
+    }, 'image/jpeg')
+  })
+}
 
 export default function EditarCapaEDetalhes() {
   const params = useParams()
   const router = useRouter()
   const clubeId = params.id as string
+
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
+
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   
@@ -71,6 +116,27 @@ export default function EditarCapaEDetalhes() {
     setImagemFicheiro(null)
     setPreviewImagem(formData.capa_url) // Volta à imagem original da BD
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  // ==========================================================================
+  // FUNÇÕES DE RECORTE DE IMAGEM
+  // ==========================================================================
+  // Atualiza os pixéis exatos da área de corte de forma otimizada sempre que o utilizador interage com a grelha
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }, [])
+
+  // Processa a imagem cortada, atualiza o estado para posterior upload e fecha o modal
+  const confirmarRecorte = async () => {
+    try {
+      // Nota: Assegure-se de que a função getCroppedImg está importada ou definida neste ficheiro
+      const file = await getCroppedImg(imageToCrop!, croppedAreaPixels)
+      setImagemFicheiro(file as File) // Guarda o ficheiro recortado para o upload posterior
+      setPreviewImagem(URL.createObjectURL(file!)) // Mostra a imagem cortada no form
+      setShowCropModal(false) // Fecha o modal
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   // 3. Guardar Alterações
