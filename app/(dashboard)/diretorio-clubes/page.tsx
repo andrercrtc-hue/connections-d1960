@@ -2,20 +2,22 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Search, Map, Filter, Heart, Mail, MapPin, LayoutGrid, ArrowRight } from 'lucide-react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import L from 'leaflet';
 import Link from 'next/link'
-
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
-});
 
 // ==========================================================================
 // COMPONENTE PRINCIPAL
 // ==========================================================================
+
+import dynamic from 'next/dynamic'
+
+// Importamos o componente do mapa apenas no lado do cliente
+const MapView = dynamic<{ clubes: any[] }>(
+  () => import('./MapViewComponent'),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[600px] bg-gray-50 animate-pulse rounded-[40px]" />
+  }
+)
 
 export default function DiretorioClubes() {
   const [clubes, setClubes] = useState<any[]>([])
@@ -265,45 +267,10 @@ export default function DiretorioClubes() {
           </div>
         ))}
       </div>
-    ) : (
-      /* MAPA REAL COM OS CLUBES FILTRADOS */
-      <div className="w-full h-[600px] rounded-[40px] border border-gray-100 overflow-hidden shadow-inner z-0">
-        <MapContainer 
-          center={[38.7223, -9.1393]} // Coordenadas centrais (ex: Lisboa)
-          zoom={12} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          
-          {clubesFiltrados.map((clube) => (
-            // Apenas desenha o pin se o clube tiver coordenadas válidas
-            clube.latitude && clube.longitude && (
-              <Marker 
-                key={clube.id} 
-                position={[clube.latitude, clube.longitude]} 
-                icon={icon}
-              >
-                <Popup>
-                  <div className="p-2">
-                    <h4 className="font-black text-[#002d5e]">{clube.nome}</h4>
-                    <p className="text-xs text-gray-500 mb-2">{clube.local_reuniao}</p>
-                    <Link 
-                      href={`/diretorio-clubes/${clube.id}`}
-                      className="text-[10px] font-bold text-[#fca311] uppercase"
-                    >
-                      Ver Detalhes →
-                    </Link>
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          ))}
-        </MapContainer>
-      </div>
-    )}
+      ) : (
+            /* Agora chamamos o componente dinâmico que criaste */
+            <MapView clubes={clubesFiltrados} />
+          )}
     </div>
   )
 }

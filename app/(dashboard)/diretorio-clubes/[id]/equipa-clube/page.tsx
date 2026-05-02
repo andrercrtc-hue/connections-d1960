@@ -257,7 +257,7 @@ function PublicClubTeamView({ members, comissoes }: { members: any[], comissoes:
   const [comissaoAberta, setComissaoAberta] = useState<string | null>(null)
 
   // 1. Destaque: Presidente do Clube
-  const pres = members.find(m => m.tipo === 'conselho' && m.cargo_exibir?.toLowerCase().includes('presidente'));
+  const pres = members.find(m => m.tipo === 'conselho' &&  m.cargo_exibir?.toLowerCase() === 'presidente');
   
   // 2. Conselho Diretor (Gabinete)
   const idsVistos = new Set();
