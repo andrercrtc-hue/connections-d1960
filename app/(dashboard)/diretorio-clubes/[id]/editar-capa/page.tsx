@@ -83,6 +83,19 @@ async function getCroppedImg(
 // ==========================================================================
 // COMPONENTE PRINCIPAL
 // ==========================================================================
+async function obterCoordenadas(morada: string) {
+  if (!morada) return null;
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(morada)}`
+    );
+    const data = await response.json();
+    return data && data.length > 0 ? { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) } : null;
+  } catch (error) {
+    console.error("Erro no Geocoding:", error);
+    return null;
+  }
+}
 
 export default function EditarCapaEDetalhes() {
   const params = useParams()
@@ -101,6 +114,7 @@ export default function EditarCapaEDetalhes() {
     distrito: 'Distrito 1960',
     ano_fundacao: '',
     email_contacto: '',
+    morada_completa: '',
     descricao: '',
     capa_url: ''
   })
@@ -124,7 +138,7 @@ export default function EditarCapaEDetalhes() {
       try {
         const { data, error } = await supabase
           .from('clubes')
-          .select('nome, ano_fundacao, email_contacto, descricao, capa_url')
+          .select('nome, ano_fundacao, email_contacto, morada_completa, descricao, capa_url')
           .eq('id', clubeId)
           .single()
 
@@ -136,6 +150,7 @@ export default function EditarCapaEDetalhes() {
             distrito: 'Distrito 1960',
             ano_fundacao: data.ano_fundacao || '',
             email_contacto: data.email_contacto || '',
+            morada_completa: data.morada_completa || '',
             descricao: data.descricao || '',
             capa_url: data.capa_url || ''
           })
