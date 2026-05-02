@@ -42,15 +42,8 @@ export default function EquipaDistrital() {
       .from('perfis')
       .select(`
         *,
-        distrito_equipa (
-          cargo_nome,
-          ordem,
-          ano_rotario
-        ),
-        comissao_membros (
-          cargo_na_comissao,
-          comissoes ( nome )
-        )
+        distrito_equipa ( id, cargo_nome, ordem ),
+        comissao_membros ( id, cargo_na_comissao, comissoes ( nome ) )
       `)
       // Filtramos para trazer apenas quem tem um cargo na nova tabela distrito_equipa
       // ou podes trazer todos e filtrar no JavaScript como já fazias
@@ -63,14 +56,14 @@ export default function EquipaDistrital() {
       perfis.forEach(perfil => {
         // A. Cargos vindos da NOVA tabela distrito_equipa
         if (perfil.distrito_equipa && perfil.distrito_equipa.length > 0) {
-          perfil.distrito_equipa.forEach((de: any, idx: number) => {
+          perfil.distrito_equipa.forEach((relacao: any) => {
             listaExpandida.push({
               ...perfil,
-              id_unico: `${perfil.id}-distrital-${idx}`,
-              cargo_exibir: de.cargo_nome, // Nome do cargo vindo da nova tabela
-              comissao_exibir: '-',
+              id_unico: `distrital-${relacao.id}`, // Usamos o ID da nova tabela
+              id_relacao: relacao.id,              // Guardamos para apagar depois
+              cargo_exibir: relacao.cargo_nome,    // Nome vindo da distrito_equipa
               tipo: 'distrital',
-              ordem_exibir: de.ordem || 99
+              ordem_exibir: relacao.ordem || 99
             });
           });
         }
@@ -213,11 +206,11 @@ export default function EquipaDistrital() {
 
     // 2. Atualizar no Supabase
     const { error } = await supabase
-      .from('perfis')
-      .update({ 
-        cargo_distrital: cargoFinal,
-        // Mantemos a ordem original se já existir, senão colocamos no fim
-        ordem_equipa_distrital: selectedMember.ordem_equipa_distrital || (equipaFiltrada.length + 1)
+      .from('distrito_equipa') // Ou 'clube_equipa' se for no clube
+      .insert({
+        perfil_id: selectedMember.id,
+        cargo_nome: novoCargoDistrital, // O nome do cargo selecionado
+        ano_rotario: '2024-25'
       })
       .eq('id', selectedMember.id)
 
@@ -241,10 +234,13 @@ export default function EquipaDistrital() {
   async function removerDaEquipa(row: any) {
     if (!confirm("Remover este cargo da equipa distrital?")) return
 
-    if (row.tipo === 'comissao' && row.comissao_membro_id) {
-      const { error } = await supabase.from('comissao_membros').delete().eq('id', row.comissao_membro_id)
-      if (!error) loadData()
-      return
+    if (row.tipo === 'distrital') {
+      const { error } = await supabase
+        .from('distrito_equipa')
+        .delete()
+        .eq('id', row.id_relacao); // Apaga a linha específica desta função
+        
+      if (!error) loadData();
     }
 
     if (row.tipo === 'distrital') {
