@@ -212,32 +212,34 @@ export default function EditarCapaEDetalhes() {
     setMensagem({ tipo: '', texto: '' })
 
     try {
+      // 1. CONVERTER A MORADA EM COORDENADAS ANTES DE GUARDAR
+      // Fazemos isto primeiro para garantir que temos os dados para o mapa
+      const coords = await obterCoordenadas(formData.morada_completa);
+
       let urlFinalDaCapa = formData.capa_url
 
-      // Se houver uma nova imagem recortada, fazer upload
+      // Lógica de upload da imagem (mantém-se igual)
       if (imagemFicheiro) {
         const timestamp = Date.now()
         const fileName = `capa_${clubeId}_${timestamp}.jpg`
-        
         const { error: uploadError } = await supabase.storage
           .from('capas_clubes') 
           .upload(fileName, imagemFicheiro)
-
         if (uploadError) throw uploadError
-
         const { data: { publicUrl } } = supabase.storage
           .from('capas_clubes')
           .getPublicUrl(fileName)
-
         urlFinalDaCapa = publicUrl
       }
 
-      // Atualizar dados na tabela 'clubes'
+      // 2. ATUALIZAR A TABELA 'clubes' COM TODOS OS CAMPOS
       const { error: updateError } = await supabase
         .from('clubes')
         .update({
           email_contacto: formData.email_contacto,
-          morada_completa: formData.morada_completa,
+          morada_completa: formData.morada_completa, // Guarda o texto
+          latitude: coords?.lat || null,             // Guarda a latitude calculada
+          longitude: coords?.lon || null,            // Guarda a longitude calculada
           descricao: formData.descricao,
           capa_url: urlFinalDaCapa
         })
@@ -245,16 +247,15 @@ export default function EditarCapaEDetalhes() {
 
       if (updateError) throw updateError
 
-      setMensagem({ tipo: 'sucesso', texto: 'Alterações guardadas com sucesso! A redirecionar...' })
+      setMensagem({ tipo: 'sucesso', texto: 'Alterações e localização guardadas!' })
       
-      // Redirecionar após sucesso
       setTimeout(() => {
         router.push(`/diretorio-clubes/${clubeId}?view=gestao`)
-        router.refresh() // Força atualização dos dados na página principal
+        router.refresh()
       }, 1500)
 
     } catch (error: any) {
-      setMensagem({ tipo: 'erro', texto: 'Ocorreu um erro: ' + error.message })
+      setMensagem({ tipo: 'erro', texto: 'Erro ao guardar: ' + error.message })
     } finally {
       setSaving(false)
     }
