@@ -143,49 +143,6 @@ export default function PaginaDinamicaClube() {
                 Distrito 1960 • {clube?.tipo}
               </span>
             </div>
-
-          <div className="flex gap-3">
-        {/* ========================================================================== */}
-        {/* SELETORES DE VISÃO PARA MEMBROS DO CLUBE                                   */}
-        {/* Permite alternar entre Público, Sócio e Gestão para testar a interface     */}
-        {/* ========================================================================== */}
-        {perfil?.clube_id === clubeIdUrl && (
-          <div className="flex bg-[#001b3d]/50 p-1 rounded-xl backdrop-blur-md border border-white/10">
-            <button 
-              onClick={() => setModoVisao('publico')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'publico' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
-            >
-              Visão Pública
-            </button>
-            <button 
-              onClick={() => setModoVisao('socio')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'socio' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
-            >
-              Visão de Sócio
-            </button>
-            {/* Apenas Nível 2 ou superior vê a aba de Gestão */}
-            {perfil?.nivel >= 2 && (
-              <button 
-                onClick={() => setModoVisao('gestao')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'gestao' ? 'bg-[#fca311] text-[#002d5e] shadow-sm' : 'text-white hover:bg-white/20'}`}
-              >
-                Gestão
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* BOTÃO DE EDITAR PÁGINA: Apenas visível na gestão e para níveis autorizados */}
-            {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
-              <button 
-                onClick={() => alert("Abrir modal de edição")}
-                className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-all"
-              >
-                <Plus size={16} /> Editar Página
-              </button>
-            )}
-          </div>
-
           </div>
           <p className="text-gray-200 text-sm md:text-base max-w-2xl font-medium">
             {clube?.descricao || "Unindo líderes para servir a comunidade e transformar vidas com impacto positivo."}
@@ -194,6 +151,45 @@ export default function PaginaDinamicaClube() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 space-y-10">
+          {/* ========================================================================== */}
+          {/* SELETORES DE VISÃO E EDIÇÃO (Movidos para baixo)                           */}
+          {/* ========================================================================== */}
+          <div className="flex justify-end gap-3 -mt-4 mb-2">
+            {perfil?.clube_id === clubeIdUrl && (
+              <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 shadow-sm">
+                <button 
+                  onClick={() => setModoVisao('publico')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'publico' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                >
+                  Visão Pública
+                </button>
+                <button 
+                  onClick={() => setModoVisao('socio')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'socio' ? 'bg-white text-[#002d5e] shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                >
+                  Visão de Sócio
+                </button>
+                {perfil?.nivel >= 2 && (
+                  <button 
+                    onClick={() => setModoVisao('gestao')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${modoVisao === 'gestao' ? 'bg-[#002d5e] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                  >
+                    Gestão
+                  </button>
+                )}
+              </div>
+            )}
+
+            {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+              <button 
+                onClick={() => alert("Abrir modal de edição")}
+                className="bg-[#fca311] hover:bg-[#e5940e] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black transition-all shadow-sm"
+              >
+                <Plus size={16} /> Editar Página
+              </button>
+            )}
+          </div>
+
           {/* --- CASO 1: VISÃO PÚBLICA (Estilo exato da imagem image_223b37.png) --- */}
           {modoVisao === 'publico' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -312,11 +308,19 @@ export default function PaginaDinamicaClube() {
                 {/* Detalhe estético de fundo */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
                 
-                <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-                  <div className="bg-white/10 p-2 rounded-lg">
-                    <Calendar size={20} className="text-[#fca311]" />
+                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/10 p-2 rounded-lg">
+                      <Calendar size={20} className="text-[#fca311]" />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-tight">Informações de Reunião</h2>
                   </div>
-                  <h2 className="text-xl font-black uppercase tracking-tight">Informações de Reunião</h2>
+                  {/* AÇÃO EXCLUSIVA DE GESTÃO */}
+                  {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
+                    <button className="bg-[#fca311] text-[#002d5e] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-orange-500 transition shadow-lg">
+                      <Pencil size={16} /> Editar Detalhes
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -354,12 +358,6 @@ export default function PaginaDinamicaClube() {
                       <p className="text-lg font-bold">Português</p>
                       <ExternalLink size={14} className="text-white/40" />
                     </div>
-                {/* AÇÃO EXCLUSIVA DE GESTÃO */}
-                {modoVisao === 'gestao' && perfil?.nivel >= 2 && (
-                      <button className="text-[10px] font-black text-[#fca311] hover:underline uppercase mt-2">
-                        Editar Detalhes
-                      </button>
-                    )}
                   </div>
                 </div>
               </section>
