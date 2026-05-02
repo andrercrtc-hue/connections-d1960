@@ -36,7 +36,23 @@ export default function EquipaDistrital() {
 
   async function loadData() {
     setLoading(true)
+    // --- NOVO BLOCO DE PERMISSÕES ---
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        const { data: perfil } = await supabase.from('perfis')
+          .select('nivel_acesso, cargo_distrital')
+          .eq('id', user.id)
+          .single()
 
+        // Verifica se o nível de acesso é administrativo (>= 3) 
+        // ou se o cargo contém "Governador" ou "GOV"
+        const temAcesso = (perfil?.nivel_acesso && perfil.nivel_acesso >= 3) || 
+                          perfil?.cargo_distrital?.toLowerCase().includes('governador') ||
+                          perfil?.cargo_distrital?.toLowerCase().includes('gov');
+                          
+        setIsAdmin(!!temAcesso)
+      }
     // 1. Carregar Perfis e as suas relações com a Equipa Distrital
     const { data: perfis, error } = await supabase
       .from('perfis')
