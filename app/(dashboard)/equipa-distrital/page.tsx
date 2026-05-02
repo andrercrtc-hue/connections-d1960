@@ -108,26 +108,27 @@ export default function EquipaDistrital() {
     }
 
     // Carregar Comissões com descrição e detalhes dos membros para o acordeão
-      const { data: coms } = await supabase
-        .from('comissoes')
-        .select(`
-          *,
-          comissao_membros (
-            id,
-            cargo_na_comissao,
-            ordem,
-            perfis (
-              primeiro_nome,
-              apelido,
-              avatar_url,
-              email,
-              telefone
-            )
+    const { data: coms } = await supabase
+      .from('comissoes')
+      .select(`
+        *,
+        comissao_membros (
+          id,
+          cargo_na_comissao,
+          ordem,
+          perfis (
+            primeiro_nome,
+            apelido,
+            avatar_url,
+            email,
+            telefone
           )
-        `)
-        .order('nome', { ascending: true });
+        )
+      `)
+      .is('clube_id', null) // CRUCIAL: Filtra para não aparecerem as dos clubes aqui
+      .order('nome', { ascending: true });
 
-      if (coms) setComissoes(coms);
+    if (coms) setComissoes(coms);
 
     setLoading(false)
   }
