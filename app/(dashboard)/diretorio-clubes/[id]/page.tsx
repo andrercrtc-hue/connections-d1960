@@ -130,7 +130,7 @@ export default function PaginaDinamicaClube() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#002d5e] via-[#002d5e]/60 to-transparent"></div>
         </div>
 
-        <div className="relative z-10 space-y-3 text-white w-full md:max-w-[70%]">
+        <div className="relative z-10 space-y-3 text-white w-full md:max-w-[50%]">
           <div className="flex flex-col items-start gap-4">
             {/* O Nome do Clube em Grande (Por cima) */}
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">

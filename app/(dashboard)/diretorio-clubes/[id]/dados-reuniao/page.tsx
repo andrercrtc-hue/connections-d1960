@@ -137,6 +137,7 @@ export default function EditarDadosReuniao() {
             >
               <option value="Semanalmente">Semanalmente</option>
               <option value="Quinzenalmente">Quinzenalmente</option>
+              <option value="Quinzenalmente">Trissemanalmente</option>
               <option value="Mensalmente">Mensalmente</option>
             </select>
           </div>
