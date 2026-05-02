@@ -413,7 +413,6 @@ export default function PaginaDinamicaClube() {
                   </button>
                 </div>
               </div>
-          )}
 
           {/* --- SECÇÃO: REPOSITÓRIO (Sócios transferem, Gestão faz upload) --- */}
               <section className="space-y-4">
