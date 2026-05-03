@@ -131,7 +131,12 @@ useEffect(() => {
                   <button 
                     key={e.id} 
                     onClick={() => setSelectedEvento(e)} 
-                    className="w-full mt-1 p-1 text-[9px] font-bold rounded truncate bg-blue-50 text-[#002d5e] border-l-2 border-blue-500 hover:bg-blue-100 transition-colors text-left"
+                    className="w-full mt-1 p-1 text-[9px] font-black rounded truncate border-l-2 transition-all hover:brightness-95 text-left"
+                    style={{ 
+                      backgroundColor: `${e.cor_etiqueta}15`, // Cor com 15% de opacidade
+                      color: e.cor_etiqueta, 
+                      borderColor: e.cor_etiqueta 
+                    }}
                   >
                     {e.titulo}
                   </button>
