@@ -62,6 +62,13 @@ export default function GestaoEvento() {
     setLoading(false)
   }
 
+  const CORES_CATEGORIAS: Record<string, string> = {
+  'Conselho': '#002d5e',
+  'Projetos': '#fca311',
+  'Visitas Oficiais': '#db2777',
+  'Formação': '#10b981'
+};
+
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-8 animate-in fade-in">
       <header className="flex items-center gap-4">
@@ -73,30 +80,41 @@ export default function GestaoEvento() {
         {/* Título */}
         <div className="md:col-span-2 space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Título do Evento *</label>
-          <input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all" />
+          <input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
         </div>
 
         {/* Datas */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Início *</label>
-          <input type="datetime-local" value={form.data_inicio} onChange={e => setForm({...form, data_inicio: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all" />
+          <input type="datetime-local" value={form.data_inicio} onChange={e => setForm({...form, data_inicio: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Fim</label>
-          <input type="datetime-local" value={form.data_fim} onChange={e => setForm({...form, data_fim: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all" />
+          <input type="datetime-local" value={form.data_fim} onChange={e => setForm({...form, data_fim: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
         </div>
 
         {/* Local e Categoria */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Local</label>
-          <input value={form.local} onChange={e => setForm({...form, local: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all" placeholder="Ex: Sede ou Link Zoom" />
+          <input value={form.local} onChange={e => setForm({...form, local: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" placeholder="Ex: Sede ou Link Zoom" />
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Categoria (Dropdown)</label>
-          <select value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all appearance-none">
-            <option value="Conselho">Conselho</option>
-            <option value="Projetos">Projetos</option>
-            <option value="Visitas Oficiais">Visitas Oficiais</option>
+          <select 
+            value={form.categoria} 
+            onChange={e => {
+              const novaCategoria = e.target.value;
+              setForm({
+                ...form, 
+                categoria: novaCategoria,
+                cor_etiqueta: CORES_CATEGORIAS[novaCategoria] || form.cor_etiqueta
+              });
+            }} 
+            className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] outline-none focus:border-blue-500 transition-all appearance-none"
+          >
+            <option value="Conselho">Atividade de Clube</option>
+            <option value="Projetos">Projeto</option>
+            <option value="Visitas Oficiais">Visitas Oficiail</option>
             <option value="Formação">Formação</option>
           </select>
         </div>
@@ -104,11 +122,18 @@ export default function GestaoEvento() {
         {/* Link e Cor */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Link de Inscrição</label>
-          <input value={form.link} onChange={e => setForm({...form, link: e.target.value})} className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold outline-none focus:border-blue-500 transition-all" placeholder="https://..." />
+          <input value={form.link} onChange={e => setForm({...form, link: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" placeholder="https://..." />
         </div>
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase text-gray-400">Cor da Etiqueta</label>
-          <input type="color" value={form.cor_etiqueta} onChange={e => setForm({...form, cor_etiqueta: e.target.value})} className="w-full h-[58px] bg-gray-50 border-2 border-gray-50 rounded-xl p-2 outline-none cursor-pointer" />
+          <label className="text-[10px] font-black uppercase text-gray-400">Cor da Etiqueta (Automática)</label>
+          <div className="flex items-center gap-4">
+            <input 
+              type="color" 
+              value={form.cor_etiqueta} 
+              disabled // Opcional: impede a alteração manual se quiseres que seja estritamente por categoria
+              className="w-full h-[58px] bg-gray-50 border-2 border-gray-50 rounded-xl p-2 outline-none cursor-pointer" 
+            />
+          </div>
         </div>
 
         <button 

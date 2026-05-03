@@ -76,7 +76,7 @@ useEffect(() => {
 
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
-      {/* Cabeçalho com Botão Novo Evento[cite: 3] */}
+      {/* Cabeçalho com Botão Novo Evento */}
       <header className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-[#002d5e]">Calendário Distrital</h1>
@@ -94,7 +94,7 @@ useEffect(() => {
               </button>
             ))}
           </div>
-          {/* Botão Global de Criação[cite: 3] */}
+          {/* Botão Global de Criação */}
           {nivelAcesso >= 3 && (
             <Link 
               href="/calendario/novo" 
@@ -107,7 +107,7 @@ useEffect(() => {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Grelha do Calendário[cite: 3, 4] */}
+        {/* Grelha do Calendário */}
         <div className="lg:col-span-8 bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-black text-[#002d5e] capitalize">
@@ -136,7 +136,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Lista de Eventos com Botão de Edição[cite: 3, 4] */}
+        {/* Lista de Eventos com Botão de Edição */}
         <div className="lg:col-span-4 space-y-6">
           <h3 className="text-xl font-black text-[#002d5e]">Próximos Eventos</h3>
           <div className="space-y-4">
