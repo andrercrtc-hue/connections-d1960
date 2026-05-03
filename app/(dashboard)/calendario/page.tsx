@@ -96,7 +96,7 @@ useEffect(() => {
           {/* Botão Global de Criação[cite: 3] */}
           {nivelAcesso >= 3 && (
             <Link 
-              href="/calendario/gestao/novo" 
+              href="/calendario/novo" 
               className="bg-[#002d5e] text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-lg"
             >
               <Plus size={18} /> Novo Evento
@@ -152,7 +152,7 @@ useEffect(() => {
                   </div>
                   {nivelAcesso >= 3 && (
                     <Link 
-                      href={`/calendario/gestao/${e.id}${e.clube_id ? `?clubeId=${e.clube_id}` : ''}`}
+                      href={`/calendario/${e.id}${e.clube_id ? `?clubeId=${e.clube_id}` : ''}`}
                       className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-blue-600 transition"
                     >
                       <Edit2 size={16} />
