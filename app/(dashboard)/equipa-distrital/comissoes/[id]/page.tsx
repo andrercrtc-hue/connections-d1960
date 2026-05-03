@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../../../lib/supabase' 
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { 
   Info, Users, Search, Plus, Trash2, Layout, 
   CheckCircle, ChevronRight, UserPlus, Type, ChevronDown, ChevronUp,
@@ -23,6 +23,9 @@ const OPCOES_ICONES = [
 export default function FormularioComissao() {
   const router = useRouter()
   const params = useParams()
+
+  const searchParams = useSearchParams()
+  const clubeId = searchParams.get('clubeId')
   
   // Deteção de Modo: Criar vs Editar
   const isEditing = params.id !== 'nova'
@@ -55,13 +58,19 @@ export default function FormularioComissao() {
    */
   useEffect(() => {
     async function carregarDados() {
-      // 1. Carregar todos os perfis para a pesquisa
-      const { data: perfisData } = await supabase
-        .from('perfis')
-        .select('id, primeiro_nome, apelido, avatar_url')
-        .order('primeiro_nome')
-      
-      if (perfisData) setPerfis(perfisData)
+
+      let query = supabase
+      .from('perfis')
+      .select('id, primeiro_nome, apelido, avatar_url')
+
+      // Filtro Inteligente[cite: 4]
+        if (clubeId) {
+          query = query.eq('clube_id', clubeId)
+        }
+
+        const { data: perfisData } = await query.order('primeiro_nome')
+        if (perfisData) setPerfis(perfisData)
+
 
       // 2. Se for edição, carregar os dados da comissão específica
       if (isEditing && comissaoId) {
@@ -156,7 +165,8 @@ export default function FormularioComissao() {
     
     try {
       let idActivo = comissaoId;
-      const dadosComissao = { nome, icone, descricao };
+      const dadosComissao = { nome, icone, descricao, clube_id: clubeId || null // Se for null, o Supabase trata como Distrital
+      };
 
       if (isEditing) {
         // 1. Atualizar dados básicos
