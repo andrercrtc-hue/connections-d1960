@@ -41,38 +41,37 @@ export default function EquipaDistrital() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
-        // 1. Procurar os seus cargos na equipa distrital
-        const { data: cargosDistritais } = await supabase
-          .from('distrito_equipa')
-          .select('cargo_nome')
-          .eq('perfil_id', user.id);
+        // --- VERIFICAÇÃO DE PERMISSÕES (APENAS POR NÍVEL) ---
+        const { data: { user } } = await supabase.auth.getUser()
 
-        let nivelAcesso = 1;
-        let isGov = false;
+        if (user) {
+          // 1. Procurar todos os cargos que o utilizador tem na equipa distrital
+          const { data: meusCargos } = await supabase
+            .from('distrito_equipa')
+            .select('cargo_nome')
+            .eq('perfil_id', user.id);
 
-        if (cargosDistritais && cargosDistritais.length > 0) {
-          const nomesCargos = cargosDistritais.map(c => c.cargo_nome).filter(Boolean);
-          
-          // Verificamos se algum dos cargos é de Governador
-          isGov = nomesCargos.some(nome => 
-            nome.toLowerCase().includes('governador') || nome.toLowerCase().includes('gov')
-          );
+          let nivelMaximoEncontrado = 1;
 
-          // 2. Procurar o nível de acesso para esses cargos na tabela de configuração
-          const { data: configs } = await supabase
-            .from('cargos_clube_config')
-            .select('nivel_acesso')
-            .in('cargo', nomesCargos); // 'cargo' é a coluna na tabela de config
+          if (meusCargos && meusCargos.length > 0) {
+            const listaDeNomes = meusCargos.map(c => c.cargo_nome).filter(Boolean);
 
-          if (configs && configs.length > 0) {
-            nivelAcesso = Math.max(...configs.map(c => c.nivel_acesso || 1));
+            // 2. Consultar a tabela de configuração para saber o nível de cada um desses cargos
+            const { data: permissoes } = await supabase
+              .from('cargos_clube_config')
+              .select('nivel_acesso')
+              .in('cargo', listaDeNomes);
+
+            if (permissoes && permissoes.length > 0) {
+              // 3. Extrair o nível mais alto que o utilizador possui
+              nivelMaximoEncontrado = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
+            }
           }
-        }
 
-        // O Governador ou qualquer pessoa com Nível 3 (Distrito) tem acesso
-        const temAcesso = nivelAcesso >= 3 || isGov;
-        setIsAdmin(!!temAcesso);
-      }
+          // 4. Define como Admin se o nível for 3 ou superior (Nível Distrital)
+          setIsAdmin(nivelMaximoEncontrado >= 3);
+        }
+       }
 
     // 1. Carregar Perfis e as suas relações com a Equipa Distrital
     const { data: perfis, error } = await supabase

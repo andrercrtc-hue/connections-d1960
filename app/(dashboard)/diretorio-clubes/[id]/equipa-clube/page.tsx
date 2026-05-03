@@ -37,28 +37,37 @@ export default function EquipaClube() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      // 1. Procurar cargos do utilizador neste clube na tabela correta
-      const { data: userRoles } = await supabase
-        .from('clube_equipa')
-        .select('cargo_nome')
-        .eq('perfil_id', user.id)
-        .eq('clube_id', clubeId);
+        // --- VERIFICAÇÃO DE PERMISSÕES (APENAS POR NÍVEL) ---
+        const { data: { user } } = await supabase.auth.getUser()
 
-      if (userRoles && userRoles.length > 0) {
-        const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
+        if (user) {
+          // 1. Procurar todos os cargos que o utilizador tem na equipa distrital
+          const { data: meusCargos } = await supabase
+            .from('clube_equipa')
+            .select('cargo_nome')
+            .eq('perfil_id', user.id);
 
-        // 2. Verificar o nível de acesso na tabela de configurações[cite: 4]
-        const { data: configData } = await supabase
-          .from('cargos_clube_config')
-          .select('nivel_acesso')
-          .in('cargo', cargosNames); 
+          let nivelMaximoEncontrado = 1;
 
-        if (configData) {
-          const nivelMaximo = Math.max(...configData.map(c => c.nivel_acesso || 1));
-          setIsAdmin(nivelMaximo >= 2); // Define se tem acesso à gestão
+          if (meusCargos && meusCargos.length > 0) {
+            const listaDeNomes = meusCargos.map(c => c.cargo_nome).filter(Boolean);
+
+            // 2. Consultar a tabela de configuração para saber o nível de cada um desses cargos
+            const { data: permissoes } = await supabase
+              .from('cargos_clube_config')
+              .select('nivel_acesso')
+              .in('cargo', listaDeNomes);
+
+            if (permissoes && permissoes.length > 0) {
+              // 3. Extrair o nível mais alto que o utilizador possui
+              nivelMaximoEncontrado = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
+            }
+          }
+
+          // 4. Define como Admin se o nível for 2 ou superior (Nível Clube)
+          setIsAdmin(nivelMaximoEncontrado >= 2);
         }
-      }
-    }
+       }
     
     // 1. Carregar Oficiais via clube_equipa (Conselho Diretor)
     const { data: oficiaisRel } = await supabase
