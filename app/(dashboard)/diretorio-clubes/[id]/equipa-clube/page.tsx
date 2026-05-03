@@ -416,7 +416,7 @@ export default function EquipaClube() {
                   {/* O Link aponta para 'nova', que é capturado pelo params.id da nossa página dinâmica */}
                   <Link 
                     href={`/equipa-distrital/comissoes/nova?clubeId=${clubeId}`}
-                    className="p-2 text-gray-400 hover:text-blue-500 transition cursor-pointer"
+                    className="bg-[#fca311] text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase shadow-md flex items-center gap-2 hover:bg-[#e5940e] transition-colors"
                   >
                     <Plus size={16} /> Nova Comissão
                   </Link>
