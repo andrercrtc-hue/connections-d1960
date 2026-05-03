@@ -43,7 +43,19 @@ export default function GestaoEvento() {
   }, [id, isEditing])
 
   const handleGuardar = async () => {
-    if (!form.titulo || !form.data_inicio) return alert("Preencha os campos obrigatórios.")
+    // Função auxiliar para verificar os minutos
+    const validarMinutos = (dataStr: string) => {
+      if (!dataStr) return true;
+      const minutos = new Date(dataStr).getMinutes();
+      return minutos % 15 === 0; // Verifica se é múltiplo de 15
+    };
+
+    if (!form.titulo || !form.data_inicio) return alert("Preencha os campos obrigatórios.");
+
+    // Validação dos 15 minutos
+    if (!validarMinutos(form.data_inicio) || (form.data_fim && !validarMinutos(form.data_fim))) {
+      return alert("Os minutos devem ser selecionados em intervalos de 15 (00, 15, 30 ou 45).");
+    }
     setLoading(true)
 
     const dados = { ...form, clube_id: clubeId || null }
@@ -86,11 +98,23 @@ export default function GestaoEvento() {
         {/* Datas */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Início *</label>
-          <input type="datetime-local" value={form.data_inicio} onChange={e => setForm({...form, data_inicio: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
+          <input 
+            type="datetime-local" 
+            step="900" // Define o intervalo de 15 minutos no seletor
+            value={form.data_inicio} 
+            onChange={e => setForm({...form, data_inicio: e.target.value})} 
+            className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] outline-none focus:border-blue-500 transition-all" 
+          />
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Fim</label>
-          <input type="datetime-local" value={form.data_fim} onChange={e => setForm({...form, data_fim: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
+          <input 
+            type="datetime-local" 
+            step="900" // Define o intervalo de 15 minutos no seletor
+            value={form.data_fim} 
+            onChange={e => setForm({...form, data_fim: e.target.value})} 
+            className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] outline-none focus:border-blue-500 transition-all" 
+          />
         </div>
 
         {/* Local e Categoria */}
@@ -131,7 +155,7 @@ export default function GestaoEvento() {
             style={{ backgroundColor: form.cor_etiqueta }}
           />
         </div>
-        
+
         {/* Descrição do Evento */}
         <div className="md:col-span-2 space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Descrição</label>
