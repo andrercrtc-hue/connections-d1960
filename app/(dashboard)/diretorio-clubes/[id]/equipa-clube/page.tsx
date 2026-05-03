@@ -37,50 +37,72 @@ export default function EquipaClube() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      const { data: perfil } = await supabase.from('perfis').select('*').eq('id', user.id).single()
-      // Verifica se é admin distrital ou líder do clube
-      const ehLiderClube = perfil?.clube_id === clubeId && (perfil?.cargo_clube?.toLowerCase().includes('presidente') || perfil?.cargo_clube?.toLowerCase().includes('secretario'))
-      setIsAdmin(perfil?.nivel_acesso >= 2 || ehLiderClube)
-    }
+      // 1. Procurar cargos do utilizador neste clube na tabela correta
+      const { data: userRoles } = await supabase
+        .from('clube_equipa')
+        .select('cargo_nome')
+        .eq('perfil_id', user.id)
+        .eq('clube_id', clubeId);
 
-    // 1. Carregar Perfis do Clube
-    const { data: perfis } = await supabase
+      if (userRoles && userRoles.length > 0) {
+        const cargosNames = userRoles.map(r => r.cargo_nome).filter(Boolean);
+
+        // 2. Verificar o nível de acesso na tabela de configurações[cite: 4]
+        const { data: configData } = await supabase
+          .from('cargos_clube_config')
+          .select('nivel_acesso')
+          .in('cargo', cargosNames); 
+
+        if (configData) {
+          const nivelMaximo = Math.max(...configData.map(c => c.nivel_acesso || 1));
+          setIsAdmin(nivelMaximo >= 2); // Define se tem acesso à gestão
+        }
+      }
+    }
+    
+    // 1. Carregar Oficiais via clube_equipa (Conselho Diretor)
+    const { data: oficiaisRel } = await supabase
+      .from('clube_equipa')
+      .select(`
+        id, cargo_nome, ordem,
+        perfis ( id, primeiro_nome, apelido, avatar_url, email, telefone, bio )
+      `)
+      .eq('clube_id', clubeId)
+      .order('ordem', { ascending: true });
+
+    // 2. Carregar todos os sócios (para pesquisa e comissões)
+    const { data: perfisBase } = await supabase
       .from('perfis')
       .select(`
         *,
-        comissao_membros (
-          cargo_na_comissao,
-          comissoes ( nome )
-        )
+        comissao_membros ( id, cargo_na_comissao, comissoes ( nome ) )
       `)
-      .eq('clube_id', clubeId)
-      .order('ordem_equipa_clube', { ascending: true })
+      .eq('clube_id', clubeId);
 
-    if (perfis) {
-      setTodosSocios(perfis);
+    if (perfisBase) {
+      setTodosSocios(perfisBase);
       const listaExpandida: any[] = [];
 
-      perfis.forEach(perfil => {
-        // A. Cargos no Conselho Diretor
-        if (perfil.cargo_clube && perfil.cargo_clube.toLowerCase() !== 'não membro') {
-          const cargos = perfil.cargo_clube.split(',').map((c: string) => c.trim());
-          cargos.forEach((cargo: string, idx: number) => {
-            listaExpandida.push({
-              ...perfil,
-              id_unico: `${perfil.id}-clube-${idx}`,
-              cargo_exibir: cargo,
-              comissao_exibir: '-',
-              tipo: 'conselho'
-            });
-          });
-        }
+      // A. Adicionar Oficiais vindos da tabela relacional
+      oficiaisRel?.forEach(oficial => {
+        listaExpandida.push({
+          ...oficial.perfis,
+          id_unico: `oficial-${oficial.id}`,
+          id_relacao: oficial.id, // ID para permitir apagar o cargo depois
+          cargo_exibir: oficial.cargo_nome,
+          comissao_exibir: '-',
+          tipo: 'conselho',
+          ordem_equipa_clube: oficial.ordem
+        });
+      });
 
-        // B. Cargos em Comissões
+      // B. Adicionar Membros de Comissões
+      perfisBase.forEach(perfil => {
         if (perfil.comissao_membros && perfil.comissao_membros.length > 0) {
           perfil.comissao_membros.forEach((cm: any, idx: number) => {
             listaExpandida.push({
               ...perfil,
-              id_unico: `${perfil.id}-comissao-${idx}`,
+              id_unico: `com-${cm.id}`,
               cargo_exibir: cm.cargo_na_comissao,
               comissao_exibir: cm.comissoes?.nome || '-',
               tipo: 'comissao',
@@ -127,13 +149,16 @@ export default function EquipaClube() {
 
   async function handleAtribuirCargo() {
     if (!selectedMember || !novoCargo.trim()) return
-    const cargoAtual = selectedMember.cargo_clube;
-    const cargoFinal = cargoAtual && cargoAtual !== 'Não membro' ? `${cargoAtual}, ${novoCargo.trim()}` : novoCargo.trim();
 
-    const { error } = await supabase.from('perfis').update({ 
-      cargo_clube: cargoFinal,
-      ordem_equipa_clube: selectedMember.ordem_equipa_clube || 99
-    }).eq('id', selectedMember.id)
+    const { error } = await supabase
+      .from('clube_equipa')
+      .insert({ 
+        perfil_id: selectedMember.id,
+        clube_id: clubeId,
+        cargo_nome: novoCargo.trim(),
+        ano_rotario: '2025-26',
+        ordem: 99
+      });
 
     if (!error) { setSearchTerm(''); setSelectedMember(null); setNovoCargo(''); loadData(); }
   }
@@ -145,11 +170,12 @@ export default function EquipaClube() {
 
   async function removerDaEquipa(row: any) {
     if (!confirm("Remover este cargo da equipa do clube?")) return
+    
     if (row.tipo === 'comissao') {
       await supabase.from('comissao_membros').delete().eq('id', row.comissao_membro_id)
     } else {
-      const cargos = (row.cargo_clube || '').split(',').map((c: string) => c.trim()).filter((c: string) => c !== row.cargo_exibir)
-      await supabase.from('perfis').update({ cargo_clube: cargos.length > 0 ? cargos.join(', ') : 'Não membro' }).eq('id', row.id)
+      // Apaga a entrada específica na tabela clube_equipa[cite: 4]
+      await supabase.from('clube_equipa').delete().eq('id', row.id_relacao)
     }
     loadData()
   }
