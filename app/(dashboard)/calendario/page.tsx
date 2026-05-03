@@ -13,31 +13,43 @@ export default function CalendarioPage() {
   const [filtro, setFiltro] = useState('Todos')
 
   // Verificação de Permissões[cite: 3, 4]
-  useEffect(() => {
-    async function verificarPermissoes() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: meusCargos } = await supabase
-          .from('clube_equipa')
-          .select('cargo_nome')
-          .eq('perfil_id', user.id);
+useEffect(() => {
+  async function verificarPermissoes() {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      console.log("ID do Utilizador Logado:", user.id); //
 
-        if (meusCargos && meusCargos.length > 0) {
-          const listaDeNomes = meusCargos.map(c => c.cargo_nome);
-          const { data: permissoes } = await supabase
-            .from('cargos_clube_config')
-            .select('nivel_acesso')
-            .in('cargo', listaDeNomes);
+      const { data: meusCargos } = await supabase
+        .from('clube_equipa')
+        .select('cargo_nome')
+        .eq('perfil_id', user.id);
 
-          if (permissoes && permissoes.length > 0) {
-            const nivelMaximo = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
-            setNivelAcesso(nivelMaximo);
-          }
+      console.log("Cargos encontrados na clube_equipa:", meusCargos); //
+
+      if (meusCargos && meusCargos.length > 0) {
+        const listaDeNomes = meusCargos.map(c => c.cargo_nome);
+
+        const { data: permissoes } = await supabase
+          .from('cargos_clube_config')
+          .select('cargo, nivel_acesso') // Pedi para trazer o nome do cargo também para conferir
+          .in('cargo', listaDeNomes);
+
+        console.log("Níveis encontrados na cargos_clube_config:", permissoes); //
+
+        if (permissoes && permissoes.length > 0) {
+          const nivelMaximo = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
+          console.log("Nível Máximo Calculado:", nivelMaximo); //
+          setNivelAcesso(nivelMaximo);
         }
       }
+    } else {
+      console.log("Nenhum utilizador logado no Supabase."); //
     }
-    verificarPermissoes();
-  }, []);
+  }
+
+  verificarPermissoes();
+}, []);
 
   // Carregar eventos do mês[cite: 3, 4]
   useEffect(() => {
