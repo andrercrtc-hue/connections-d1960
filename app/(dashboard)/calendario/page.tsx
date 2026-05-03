@@ -21,11 +21,11 @@ useEffect(() => {
       console.log("ID do Utilizador Logado:", user.id); //
 
       const { data: meusCargos } = await supabase
-        .from('clube_equipa')
+        .from('distrito_equipa')
         .select('cargo_nome')
         .eq('perfil_id', user.id);
 
-      console.log("Cargos encontrados na clube_equipa:", meusCargos); //
+      console.log("Cargos encontrados na distrito_equipa:", meusCargos); //
 
       if (meusCargos && meusCargos.length > 0) {
         const listaDeNomes = meusCargos.map(c => c.cargo_nome);
