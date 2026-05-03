@@ -41,36 +41,39 @@ export default function EquipaDistrital() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
-        // Lê o nível de acesso da tabela cargos_clube_config e os cargos distritais da tabela distrito_equipa
-        const { data: perfil } = await supabase.from('perfis')
-          .select(`
-            id,
-            cargos_clube_config ( nivel_acesso ),
-            distrito_equipa ( cargo_nome )
-          `)
-          .eq('id', user.id)
-          .single()
+        // 1. Procurar os seus cargos na equipa distrital
+        const { data: cargosDistritais } = await supabase
+          .from('distrito_equipa')
+          .select('cargo_nome')
+          .eq('perfil_id', user.id);
 
-        // Extrai o nível de acesso (lidando com retorno em array ou objeto único)
         let nivelAcesso = 1;
-        if (perfil?.cargos_clube_config) {
-          if (Array.isArray(perfil.cargos_clube_config)) {
-             nivelAcesso = perfil.cargos_clube_config[0]?.nivel_acesso || 1;
-          } else {
-             nivelAcesso = (perfil.cargos_clube_config as any).nivel_acesso || 1;
+        let isGov = false;
+
+        if (cargosDistritais && cargosDistritais.length > 0) {
+          const nomesCargos = cargosDistritais.map(c => c.cargo_nome).filter(Boolean);
+          
+          // Verificamos se algum dos cargos é de Governador
+          isGov = nomesCargos.some(nome => 
+            nome.toLowerCase().includes('governador') || nome.toLowerCase().includes('gov')
+          );
+
+          // 2. Procurar o nível de acesso para esses cargos na tabela de configuração
+          const { data: configs } = await supabase
+            .from('cargos_clube_config')
+            .select('nivel_acesso')
+            .in('cargo', nomesCargos); // 'cargo' é a coluna na tabela de config
+
+          if (configs && configs.length > 0) {
+            nivelAcesso = Math.max(...configs.map(c => c.nivel_acesso || 1));
           }
         }
 
-        // Verifica se tem cargo de Governador na tabela distrito_equipa
-        const isGov = perfil?.distrito_equipa?.some((eq: any) => 
-          eq.cargo_nome?.toLowerCase().includes('governador') || 
-          eq.cargo_nome?.toLowerCase().includes('gov')
-        );
-
-        // Verifica se o nível de acesso é administrativo (>= 3) ou se é governador
+        // O Governador ou qualquer pessoa com Nível 3 (Distrito) tem acesso
         const temAcesso = nivelAcesso >= 3 || isGov;
-        setIsAdmin(!!temAcesso)
+        setIsAdmin(!!temAcesso);
       }
+
     // 1. Carregar Perfis e as suas relações com a Equipa Distrital
     const { data: perfis, error } = await supabase
       .from('perfis')
