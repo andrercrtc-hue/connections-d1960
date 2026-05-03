@@ -11,6 +11,7 @@ export default function CalendarioPage() {
   const [nivelAcesso, setNivelAcesso] = useState(1) 
   const [eventos, setEventos] = useState<any[]>([])
   const [filtro, setFiltro] = useState('Todos')
+  const [selectedEvento, setSelectedEvento] = useState<any>(null);
 
   // Verificação de Permissões[cite: 3, 4]
 useEffect(() => {
@@ -32,7 +33,7 @@ useEffect(() => {
 
         const { data: permissoes } = await supabase
           .from('cargos_clube_config')
-          .select('cargo, nivel_acesso') // Pedi para trazer o nome do cargo também para conferir
+          .select('cargo, nivel_acesso') 
           .in('cargo', listaDeNomes);
 
         console.log("Níveis encontrados na cargos_clube_config:", permissoes); //
@@ -51,7 +52,7 @@ useEffect(() => {
   verificarPermissoes();
 }, []);
 
-  // Carregar eventos do mês[cite: 3, 4]
+  // Carregar eventos do mês
   useEffect(() => {
     async function fetchEventos() {
       const primeiroDia = startOfMonth(currentDate).toISOString()
@@ -127,9 +128,13 @@ useEffect(() => {
               <div key={dia.toString()} className="bg-white min-h-[120px] p-2 border-t border-gray-50">
                 <span className="text-sm font-bold text-gray-900">{format(dia, 'd')}</span>
                 {eventos.filter(e => isSameDay(new Date(e.data_inicio), dia)).map(e => (
-                  <div key={e.id} className="mt-1 p-1 text-[9px] font-bold rounded truncate bg-blue-50 text-[#002d5e] border-l-2 border-blue-500">
+                  <button 
+                    key={e.id} 
+                    onClick={() => setSelectedEvento(e)} 
+                    className="w-full mt-1 p-1 text-[9px] font-bold rounded truncate bg-blue-50 text-[#002d5e] border-l-2 border-blue-500 hover:bg-blue-100 transition-colors text-left"
+                  >
                     {e.titulo}
-                  </div>
+                  </button>
                 ))}
               </div>
             ))}
@@ -167,6 +172,70 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      {/* MODAL DE DETALHES DO EVENTO */}
+      {selectedEvento && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div 
+            className="bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Cabeçalho com Cor da Categoria */}
+            <div 
+              className="h-24 w-full p-8 flex items-end"
+              style={{ backgroundColor: selectedEvento.cor_etiqueta }}
+            >
+              <span className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                {selectedEvento.categoria}
+              </span>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div>
+                <h2 className="text-2xl font-black text-[#002d5e] leading-tight">{selectedEvento.titulo}</h2>
+                <p className="text-gray-500 text-sm mt-2 leading-relaxed">{selectedEvento.descricao || 'Sem descrição disponível.'}</p>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-gray-50">
+                <div className="flex items-center gap-4 text-gray-600">
+                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-blue-600"><Clock size={20}/></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-gray-400">Data e Hora</p>
+                    <p className="font-bold text-sm">
+                      {format(new Date(selectedEvento.data_inicio), "d 'de' MMMM 'às' HH:mm", { locale: pt })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-gray-600">
+                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-red-500"><MapPin size={20}/></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-gray-400">Localização</p>
+                    <p className="font-bold text-sm">{selectedEvento.local || 'Local não definido'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                {selectedEvento.link && (
+                  <a 
+                    href={selectedEvento.link} 
+                    target="_blank" 
+                    className="flex-1 bg-[#002d5e] text-white text-center py-4 rounded-2xl font-black text-sm shadow-lg hover:-translate-y-1 transition-all"
+                  >
+                    Inscrever no Evento
+                  </a>
+                )}
+                <button 
+                  onClick={() => setSelectedEvento(null)}
+                  className="flex-1 bg-gray-100 text-gray-500 py-4 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

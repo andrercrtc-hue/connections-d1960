@@ -63,9 +63,9 @@ export default function GestaoEvento() {
   }
 
   const CORES_CATEGORIAS: Record<string, string> = {
-  'Conselho': '#002d5e',
-  'Projetos': '#fca311',
-  'Visitas Oficiais': '#db2777',
+  'Atividade de Clube': '#002d5e',
+  'Projeto': '#fca311',
+  'Visitas Oficial': '#db2777',
   'Formação': '#10b981'
 };
 
@@ -139,6 +139,18 @@ export default function GestaoEvento() {
         >
           {loading ? 'A gravar...' : 'Guardar Evento'}
         </button>
+      </div>
+
+
+      {/* Descrição do Evento */}
+      <div className="md:col-span-2 space-y-2">
+        <label className="text-[10px] font-black uppercase text-gray-400">Descrição</label>
+        <textarea
+          value={form.descricao} 
+          onChange={e => setForm({...form, descricao: e.target.value})} 
+          className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] placeholder-gray-400 outline-none focus:border-blue-500 transition-all min-h-[120px] resize-none" 
+          placeholder="Descreve aqui os detalhes da atividade..." 
+        />
       </div>
     </div>
   )
