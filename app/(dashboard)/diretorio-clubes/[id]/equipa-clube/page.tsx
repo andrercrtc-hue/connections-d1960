@@ -41,12 +41,18 @@ export default function EquipaClube() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      // 1. Procurar os cargos do utilizador APENAS neste clube específico
-      const { data: meusCargos } = await supabase
+      // ESTES LOGS SÃO A CHAVE:
+      console.log("ID do utilizador logado:", user.id);
+      console.log("ID do clube vindo do URL:", clubeId);
+      
+      const { data: meusCargos, error } = await supabase
         .from('clube_equipa')
         .select('cargo_nome')
         .eq('perfil_id', user.id)
-        .eq('clube_id', clubeId); // CRUCIAL: Só és admin se tiveres cargo NESTE clube
+        .eq('clube_id', clubeId);
+
+      if (error) console.error("Erro na consulta:", error.message);
+      console.log("Resultado da consulta:", meusCargos);
 
       let nivelMaximoEncontrado = 1;
 
@@ -60,7 +66,7 @@ export default function EquipaClube() {
           .in('cargo', listaDeNomes);
 
         if (permissoes && permissoes.length > 0) {
-          // 3. Extrair o nível mais alto[cite: 6]
+          // 3. Extrair o nível mais alto
           nivelMaximoEncontrado = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
         }
       }
