@@ -80,7 +80,7 @@ export default function GestaoEvento() {
         {/* Título */}
         <div className="md:col-span-2 space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Título do Evento *</label>
-          <input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" />
+          <input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" placeholder="Título do Evento" />
         </div>
 
         {/* Datas */}
@@ -99,7 +99,7 @@ export default function GestaoEvento() {
           <input value={form.local} onChange={e => setForm({...form, local: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-sm text-gray-900 font-bold outline-none" placeholder="Ex: Sede ou Link Zoom" />
         </div>
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase text-gray-400">Categoria (Dropdown)</label>
+          <label className="text-[10px] font-black uppercase text-gray-400">Categoria</label>
           <select 
             value={form.categoria} 
             onChange={e => {
@@ -112,9 +112,9 @@ export default function GestaoEvento() {
             }} 
             className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] outline-none focus:border-blue-500 transition-all appearance-none"
           >
-            <option value="Conselho">Atividade de Clube</option>
-            <option value="Projetos">Projeto</option>
-            <option value="Visitas Oficiais">Visitas Oficiail</option>
+            <option value="Atividade de Clube">Atividade de Clube</option>
+            <option value="Projeto">Projeto</option>
+            <option value="Visitas Oficial">Visitas Oficial</option>
             <option value="Formação">Formação</option>
           </select>
         </div>
@@ -126,14 +126,10 @@ export default function GestaoEvento() {
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400">Cor da Etiqueta (Automática)</label>
-          <div className="flex items-center gap-4">
-            <input 
-              type="color" 
-              value={form.cor_etiqueta} 
-              disabled // Opcional: impede a alteração manual se quiseres que seja estritamente por categoria
-              className="w-full h-[58px] bg-gray-50 border-2 border-gray-50 rounded-xl p-2 outline-none cursor-pointer" 
-            />
-          </div>
+          <div
+            className="w-full h-[58px] rounded-xl border-2 border-gray-50 shadow-sm transition-all duration-500"
+            style={{ backgroundColor: form.cor_etiqueta }}
+          />
         </div>
 
         <button 
