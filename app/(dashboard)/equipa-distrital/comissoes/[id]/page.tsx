@@ -58,7 +58,7 @@ export default function FormularioComissao() {
       // 1. Carregar todos os perfis para a pesquisa
       const { data: perfisData } = await supabase
         .from('perfis')
-        .select('id, primeiro_nome, apelido, avatar_url,')
+        .select('id, primeiro_nome, apelido, avatar_url')
         .order('primeiro_nome')
       
       if (perfisData) setPerfis(perfisData)
