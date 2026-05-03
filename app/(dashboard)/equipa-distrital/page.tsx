@@ -331,7 +331,7 @@ export default function EquipaDistrital() {
     setSavingMsg(false)
   }
 
-  // MANTIDA A TUA LÓGICA DE EXPORTAÇÃO CSV
+  // EXPORTAÇÃO CSV
   function buildCsvRow(values: Array<string | number | undefined>) {
     return values.map((value) => {
         const text = value === undefined || value === null ? '' : String(value)
@@ -600,7 +600,7 @@ function PublicTeamView({ members, mensagem, comissoes }: { members: any[], mens
   const [comissaoAberta, setComissaoAberta] = useState<string | null>(null)
 
   // 1. Destaque do Governador
-  const gov = members.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase().includes('governador'));
+  const gov = members.find(m => m.tipo === 'distrital' && m.cargo_exibir?.toLowerCase() === 'governador');
   
   // 2. Filtro do Gabinete (evita duplicados de pessoas com vários cargos)
   const idsVistos = new Set();

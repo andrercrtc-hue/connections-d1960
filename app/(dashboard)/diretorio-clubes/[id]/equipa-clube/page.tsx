@@ -294,24 +294,43 @@ function PublicClubTeamView({ members, comissoes }: { members: any[], comissoes:
     return false;
   });
 
+// 3. Mapeamento de ícones para as comissões
+  const getIcon = (id: string) => {
+    switch (id) {
+      case 'strategy': return <Layout size={24} />;
+      case 'public': return <Type size={24} />;
+      case 'volunteer_activism': return <Plus size={24} />;
+      case 'hub': return <CheckCircle size={24} />;
+      default: return <Users size={24} />;
+    }
+  };
+
+  const coresIcones = [
+    { bg: 'bg-[#eef4ff]', text: 'text-[#3178c6]' },
+    { bg: 'bg-[#ffedd5]', text: 'text-[#f59e0b]' },
+    { bg: 'bg-[#fce7f3]', text: 'text-[#db2777]' },
+    { bg: 'bg-[#dcfce7]', text: 'text-[#10b981]' },
+  ]
+
+
   return (
     <div className="space-y-12 animate-in slide-in-from-bottom-4">
       
       {/* DESTAQUE: PRESIDENTE DO CLUBE */}
-      <section className="bg-white rounded-[32px] p-10 border border-gray-100 shadow-sm relative overflow-hidden">
+      <section className="bg-white rounded-[32px] p-12 border border-gray-100 shadow-sm relative overflow-hidden text-gray-900">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#004a99] to-[#fca311]"></div>
         <div className="flex flex-col md:flex-row items-center gap-10">
           <div className="w-48 h-48 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gray-50 flex-shrink-0">
             <img src={pres?.avatar_url || `https://ui-avatars.com/api/?name=P`} className="w-full h-full object-cover" />
           </div>
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1">
             <span className="text-[10px] font-black uppercase text-[#fca311] tracking-widest">Presidente do Clube</span>
             <h2 className="text-4xl font-black text-[#002d5e] mb-4">{pres ? `${pres.primeiro_nome} ${pres.apelido}` : 'Presidente do Clube'}</h2>
             <p className="border-l-4 border-orange-100 pl-6 italic text-gray-500 text-lg leading-relaxed mb-6">"{pres?.bio || 'Liderando com entusiasmo para criar mudanças positivas em nossa comunidade.'}"</p>
             {pres && (
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 font-bold">
-                <div className="bg-blue-50 text-[#004a99] px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Mail size={16}/> {pres.email}</div>
-                {pres.telefone && <div className="bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Phone size={16}/> {pres.telefone}</div>}
+              <div className="flex flex-wrap gap-4 font-bold">
+                <div className="bg-blue-50 text-[#004a99] px-4 py-2.5 rounded-xl text-xs border border-blue-100 flex items-center gap-2"><Mail size={16}/> {pres.email}</div>
+                {pres.telefone && <div className="bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl text-xs border border-gray-200 flex items-center gap-2"><Phone size={16}/> {pres.telefone}</div>}
               </div>
             )}
           </div>
@@ -319,55 +338,92 @@ function PublicClubTeamView({ members, comissoes }: { members: any[], comissoes:
       </section>
 
       {/* CONSELHO DIRETOR */}
+      {conselho.length > 0 && (
       <section className="space-y-6">
         <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">Conselho Diretor <div className="h-[1px] flex-1 bg-gray-100"></div></h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {conselho.map((m, i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-               <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${m.primeiro_nome}`} className="w-20 h-20 rounded-xl object-cover shadow-inner" />
-               <div className="flex-1 min-w-0">
-                  <h4 className="font-black text-[#002d5e] truncate mb-0.5">{m.primeiro_nome} {m.apelido}</h4>
-                  <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest mb-3">{m.cargo_clube}</p>
-                  <div className="flex gap-2">
-                    <a href={`mailto:${m.email}`} className="p-1.5 bg-blue-50 text-[#004a99] rounded-lg hover:bg-[#004a99] hover:text-white transition-colors"><Mail size={14}/></a>
-                    {m.telefone && <a href={`tel:${m.telefone}`} className="p-1.5 bg-gray-50 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors"><Phone size={14}/></a>}
-                  </div>
+            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-6 hover:shadow-md transition text-gray-900 font-medium">
+               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 shadow-inner">
+                  <img src={m.avatar_url || `https://ui-avatars.com/api/?name=${m.primeiro_nome}`} className="w-full h-full object-cover" />
                </div>
+               <div className="space-y-3 w-full">
+                  <div>
+                      <h4 className="font-black text-[#002d5e] text-xl leading-none mb-1.5">{m.primeiro_nome} {m.apelido}</h4>
+                  <p className="text-[10px] font-black text-[#fca311] uppercase tracking-widest">{m.cargo_clube}</p>
+                  </div>
+                  <div className="space-y-2 pt-2 border-t border-gray-50 text-gray-500 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail size={14} className="text-[#004a99]" />
+                      <span>{m.email || 'Sem email'}</span>
+                    </div>
+                    {m.telefone && (
+                      <div className="flex items-center gap-2">
+                        <Phone size={14} className="text-[#004a99]" />
+                        <span>{m.telefone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
             </div>
           ))}
         </div>
       </section>
+    )}
 
       {/* COMISSÕES DO CLUBE */}
-      {comissoes.length > 0 && (
-        <section className="space-y-6">
-          <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">Comissões do Clube <div className="h-[1px] flex-1 bg-gray-100"></div></h3>
+      {comissoes && comissoes.length > 0 && (
+        <section className="space-y-6 pt-4 text-gray-900">
+          <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">
+            Comissões Distritais <div className="h-[1px] flex-1 bg-gray-100"></div>
+          </h3>
+          
           <div className="space-y-4">
-            {comissoes.map((com) => {
+            {comissoes.map((com, index) => {
               const isAberta = comissaoAberta === com.id
+              const cor = coresIcones[index % coresIcones.length]
+              
+              // Ordenação por precedência definida no formulário
+              const membrosOrdenados = [...(com.comissao_membros || [])].sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
               return (
-                <div key={com.id} className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
-                  <button onClick={() => setComissaoAberta(isAberta ? null : com.id)} className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition text-left">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-[#004a99]"><Users size={24}/></div>
-                      <div>
-                        <h4 className="font-black text-[#002d5e] text-lg">{com.nome}</h4>
-                        <p className="text-xs text-gray-400 font-bold uppercase">{com.comissao_membros?.length || 0} Membros • {com.descricao || "Ações e projetos de serviço."}</p>
+                <div key={com.id} className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+                  <button 
+                    onClick={() => setComissaoAberta(isAberta ? null : com.id)}
+                    className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${cor.bg} ${cor.text} shadow-sm`}>
+                         {getIcon(com.icone)}
+                      </div>
+                      <div className="text-left">
+                         <h4 className="font-black text-[#002d5e] text-xl mb-1">{com.nome}</h4>
+                         <p className="text-xs text-gray-400 font-bold uppercase tracking-tight">
+                            {membrosOrdenados.length} Membros • <span className="text-gray-500 normal-case font-medium">{com.descricao || "Sem descrição."}</span>
+                         </p>
                       </div>
                     </div>
-                    <ChevronDown className={`text-gray-300 transition-transform ${isAberta ? 'rotate-180' : ''}`} size={24} />
+                    <ChevronDown className={`text-gray-300 transition-transform duration-500 ${isAberta ? 'rotate-180' : ''}`} size={24} />
                   </button>
+
+                  {/* LISTAGEM DE MEMBROS (ACORDEÃO) */}
                   {isAberta && (
-                    <div className="px-6 pb-8 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-gray-50 bg-gray-50/20">
-                      {com.comissao_membros?.sort((a:any, b:any) => a.ordem - b.ordem).map((m: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                          <img src={m.perfis?.avatar_url || `https://ui-avatars.com/api/?name=${m.perfis?.primeiro_nome}`} className="w-10 h-10 rounded-full object-cover" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-black text-[#002d5e] truncate leading-tight">{m.perfis?.primeiro_nome} {m.perfis?.apelido}</p>
-                            <p className="text-[10px] font-bold text-[#fca311] uppercase">{m.cargo_na_comissao}</p>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="px-6 pb-8 pt-2 border-t border-gray-50 bg-gray-50/30">
+                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                         {membrosOrdenados.map((m: any, idx: number) => (
+                           <div key={idx} className="flex items-start gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                                <img src={m.perfis?.avatar_url || `https://ui-avatars.com/api/?name=${m.perfis?.primeiro_nome}`} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-black text-[#002d5e] truncate leading-tight">{m.perfis?.primeiro_nome} {m.perfis?.apelido}</p>
+                                <p className="text-[10px] font-bold text-[#fca311] uppercase tracking-wider">{m.cargo_na_comissao}</p>
+                                {m.perfis?.email && <p className="text-[9px] text-gray-500 truncate mt-1">{m.perfis?.email}</p>}
+                                {m.perfis?.telefone && <p className="text-[9px] text-gray-500">{m.perfis?.telefone}</p>}
+                              </div>
+                           </div>
+                         ))}
+                       </div>
                     </div>
                   )}
                 </div>
