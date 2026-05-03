@@ -303,7 +303,7 @@ export default function EquipaClube() {
         {viewMode === 'admin' ? (
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Gestão da Equipa Distrital</h1>
+              <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Gestão da Equipa do Clube</h1>
             </div>
             {isAdmin && (
               <button onClick={() => setViewMode(viewMode === 'admin' ? 'user' : 'admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
@@ -314,7 +314,7 @@ export default function EquipaClube() {
         ) : (
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Equipa Distrital</h1>
+              <h1 className="text-2xl font-black text-[#002d5e] uppercase tracking-tighter">Equipa do Clube</h1>
             </div>
             {isAdmin && (
               <button onClick={() => setViewMode('admin')} className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs uppercase bg-[#004a99] text-white shadow-lg transition-all">
@@ -377,13 +377,14 @@ export default function EquipaClube() {
                     {showDropdown && searchTerm.length > 0 && !selectedMember && (
                       <ul className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
                         {todosSocios
-                          .filter(m => `${m.primeiro_nome} ${m.apelido}`.toLowerCase().includes(searchTerm.toLowerCase()))
+                          .filter(m => `${m.primeiro_nome || ''} ${m.apelido || ''}`.trim().toLowerCase().includes(searchTerm.trim().toLowerCase()))
                           .map(m => (
                             <li 
                               key={m.id} 
                               onClick={() => { 
                                 setSelectedMember(m); // Aqui passamos o objeto 'm' que contém o cargo_distrital atual
                                 setSearchTerm(`${m.primeiro_nome} ${m.apelido}`); 
+                                setSearchTerm(`${m.primeiro_nome || ''} ${m.apelido || ''}`.trim()); 
                                 setShowDropdown(false); 
                               }} 
                               className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3"
@@ -410,7 +411,7 @@ export default function EquipaClube() {
                   {/* O Link aponta para 'nova', que é capturado pelo params.id da nossa página dinâmica */}
                   <Link 
                     href="/equipa-distrital/comissoes/nova" 
-                    className="bg-[#fca311] text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase shadow-md flex items-center gap-2 hover:bg-[#e5940e] transition-colors"
+                    className="p-2 text-gray-400 hover:text-blue-500 transition cursor-pointer"
                   >
                     <Plus size={16} /> Nova Comissão
                   </Link>
@@ -425,7 +426,7 @@ export default function EquipaClube() {
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         {/* LÁPIS: Em vez de um <button>, usamos um <Link> do Next.js para navegar para a página de edição usando o ID da comissão */}
                         <Link 
-                          href={`/equipa-distrital/comissoes/${com.id}`} 
+                          href={`/equipa-distrital/comissoes/${com.id}`}
                           className="p-2 text-gray-400 hover:text-blue-500 transition cursor-pointer"
                         >
                           <Edit2 size={14}/>
@@ -627,7 +628,7 @@ function PublicClubTeamView({ members, comissoes, mensagem }: { members: any[], 
       {comissoes && comissoes.length > 0 && (
         <section className="space-y-6 pt-4 text-gray-900">
           <h3 className="text-2xl font-black text-[#002d5e] flex items-center gap-4">
-            Comissões Distritais <div className="h-[1px] flex-1 bg-gray-100"></div>
+            Comissões do Clube <div className="h-[1px] flex-1 bg-gray-100"></div>
           </h3>
           
           <div className="space-y-4">
