@@ -93,7 +93,7 @@ export default function EquipaClube() {
       .from('perfis')
       .select(`
         *,
-        comissao_membros ( id, cargo_na_comissao, comissoes ( nome ) )
+        comissao_membros ( id, cargo_na_comissao, comissoes ( nome, clube_id ) )
       `)
       .eq('clube_id', clubeId);
 
@@ -117,7 +117,12 @@ export default function EquipaClube() {
       // B. Adicionar Membros de Comissões
       perfisBase.forEach(perfil => {
         if (perfil.comissao_membros && perfil.comissao_membros.length > 0) {
-          perfil.comissao_membros.forEach((cm: any, idx: number) => {
+          // FILTRO: Apenas comissões onde o clube_id é igual ao clubeId da página
+          const comissoesDoClube = perfil.comissao_membros.filter(
+            (cm: any) => cm.comissoes?.clube_id === clubeId
+          );
+
+          comissoesDoClube.forEach((cm: any) => {
             listaExpandida.push({
               ...perfil,
               id_unico: `com-${cm.id}`,
