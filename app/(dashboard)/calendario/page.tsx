@@ -14,6 +14,10 @@ export default function CalendarioPage() {
   const [filtro, setFiltro] = useState('Todos')
   const [selectedEvento, setSelectedEvento] = useState<any>(null);
 
+  const eventosFiltrados = eventos.filter(e => 
+  filtro === 'Todos' || e.categoria === filtro
+  );
+
   // Verificação de Permissões[cite: 3, 4]
 useEffect(() => {
   async function verificarPermissoes() {
@@ -128,7 +132,7 @@ useEffect(() => {
             {diasNoMes.map((dia: Date) => (
               <div key={dia.toString()} className="bg-white min-h-[120px] p-2 border-t border-gray-50">
                 <span className="text-sm font-bold text-gray-900">{format(dia, 'd')}</span>
-                {eventos.filter( e =>{
+                {eventosFiltrados.filter( e =>{
                   const inicio = startOfDay(new Date(e.data_inicio));
                   const fim = startOfDay(new Date(e.data_fim || e.data_inicio)); // Se não houver fim, usa o início como fim
                   return isWithinInterval(startOfDay(dia), { start: inicio, end: fim });
@@ -155,8 +159,8 @@ useEffect(() => {
         <div className="lg:col-span-4 space-y-6">
           <h3 className="text-xl font-black text-[#002d5e]">Próximos Eventos</h3>
           <div className="space-y-4">
-            {eventos.length > 0 ? (
-              eventos.map(e => (
+            {eventosFiltrados.length > 0 ? (
+              eventosFiltrados.slice(0, 4).map(e => (
                 <div key={e.id} className="group relative flex gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition">
                   <div 
                     className="w-12 h-12 rounded-xl flex flex-col items-center justify-center"
@@ -184,7 +188,7 @@ useEffect(() => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-400 italic text-sm">Nenhum evento este mês.</p>
+              <p className="text-gray-400 italic text-sm">Nenhum evento nesta categoria.</p>
             )}
           </div>
         </div>
