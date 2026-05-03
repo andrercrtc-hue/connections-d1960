@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval,  startOfDay } from 'date-fns'
 import { pt } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, MapPin, Clock, Plus, Edit2 } from 'lucide-react'
 import Link from 'next/link' // Importação correta para navegação[cite: 3]
+import { start } from 'repl'
 
 export default function CalendarioPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -85,7 +86,7 @@ useEffect(() => {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
-            {['Todos', 'Conselho', 'Projetos', 'Visitas'].map(f => (
+            {['Todos', 'Atividade de Clube', 'Projeto', 'Visita Oficial', 'Formação'].map(f => (
               <button 
                 key={f}
                 onClick={() => setFiltro(f)}
@@ -127,7 +128,11 @@ useEffect(() => {
             {diasNoMes.map((dia: Date) => (
               <div key={dia.toString()} className="bg-white min-h-[120px] p-2 border-t border-gray-50">
                 <span className="text-sm font-bold text-gray-900">{format(dia, 'd')}</span>
-                {eventos.filter(e => isSameDay(new Date(e.data_inicio), dia)).map(e => (
+                {eventos.filter( e =>{
+                  const inicio = startOfDay(new Date(e.data_inicio));
+                  const fim = startOfDay(new Date(e.data_fim || e.data_inicio)); // Se não houver fim, usa o início como fim
+                  return isWithinInterval(startOfDay(dia), { start: inicio, end: fim });
+                }) .map(e => (
                   <button 
                     key={e.id} 
                     onClick={() => setSelectedEvento(e)} 
@@ -153,13 +158,20 @@ useEffect(() => {
             {eventos.length > 0 ? (
               eventos.map(e => (
                 <div key={e.id} className="group relative flex gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex flex-col items-center justify-center text-[#002d5e]">
+                  <div 
+                    className="w-12 h-12 rounded-xl flex flex-col items-center justify-center"
+                    style={{ backgroundColor: `${e.cor_etiqueta}15`, color: e.cor_etiqueta }}
+                  >
                     <span className="text-[10px] font-black uppercase">{format(new Date(e.data_inicio), 'MMM', { locale: pt })}</span>
                     <span className="text-lg font-black">{format(new Date(e.data_inicio), 'dd')}</span>
                   </div>
+
                   <div className="flex-1">
                     <h4 className="font-bold text-sm text-gray-900">{e.titulo}</h4>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1"><MapPin size={12}/> {e.local}</div>
+                    <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1">
+                      {/* Substituição do Ícone MapPin */}
+                      <MapPin size={12} style={{ color: e.cor_etiqueta }} /> {e.local}
+                    </div>
                   </div>
                   {nivelAcesso >= 3 && (
                     <Link 

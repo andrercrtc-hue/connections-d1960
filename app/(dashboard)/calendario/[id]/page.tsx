@@ -77,7 +77,7 @@ export default function GestaoEvento() {
   const CORES_CATEGORIAS: Record<string, string> = {
   'Atividade de Clube': '#002d5e',
   'Projeto': '#fca311',
-  'Visitas Oficial': '#db2777',
+  'Visita Oficial': '#db2777',
   'Formação': '#10b981'
 };
 
@@ -138,7 +138,7 @@ export default function GestaoEvento() {
           >
             <option value="Atividade de Clube">Atividade de Clube</option>
             <option value="Projeto">Projeto</option>
-            <option value="Visitas Oficial">Visitas Oficial</option>
+            <option value="Visita Oficial">Visita Oficial</option>
             <option value="Formação">Formação</option>
           </select>
         </div>
