@@ -131,6 +131,17 @@ export default function GestaoEvento() {
             style={{ backgroundColor: form.cor_etiqueta }}
           />
         </div>
+        
+        {/* Descrição do Evento */}
+        <div className="md:col-span-2 space-y-2">
+          <label className="text-[10px] font-black uppercase text-gray-400">Descrição</label>
+          <textarea
+            value={form.descricao} 
+            onChange={e => setForm({...form, descricao: e.target.value})} 
+            className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] placeholder-gray-400 outline-none focus:border-blue-500 transition-all min-h-[120px] resize-none" 
+            placeholder="Descreve aqui os detalhes da atividade..." 
+          />
+        </div>
 
         <button 
           onClick={handleGuardar}
@@ -141,17 +152,6 @@ export default function GestaoEvento() {
         </button>
       </div>
 
-
-      {/* Descrição do Evento */}
-      <div className="md:col-span-2 space-y-2">
-        <label className="text-[10px] font-black uppercase text-gray-400">Descrição</label>
-        <textarea
-          value={form.descricao} 
-          onChange={e => setForm({...form, descricao: e.target.value})} 
-          className="w-full bg-gray-50 border-2 border-gray-50 rounded-xl p-4 font-bold text-[#002d5e] placeholder-gray-400 outline-none focus:border-blue-500 transition-all min-h-[120px] resize-none" 
-          placeholder="Descreve aqui os detalhes da atividade..." 
-        />
-      </div>
     </div>
   )
 }
