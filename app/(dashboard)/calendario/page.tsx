@@ -57,6 +57,7 @@ useEffect(() => {
       const primeiroDia = startOfMonth(currentDate).toISOString()
       const ultimoDia = endOfMonth(currentDate).toISOString()
 
+      
       const { data } = await supabase
         .from('eventos')
         .select('*')
