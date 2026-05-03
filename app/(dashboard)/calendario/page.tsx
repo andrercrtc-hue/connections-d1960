@@ -3,12 +3,69 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns'
 import { pt } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, MapPin, Clock, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MapPin, Clock, Plus, Link, Edit2 } from 'lucide-react'
 
 export default function CalendarioPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [nivelAcesso, setNivelAcesso] = useState(1) // Por defeito 1 (utilizador comum)
   const [eventos, setEventos] = useState<any[]>([])
   const [filtro, setFiltro] = useState('Todos')
+
+
+  {eventos.map(e => (
+  <div key={e.id} className="group relative flex gap-4 bg-white p-4 rounded-2xl border border-gray-50 shadow-sm hover:shadow-md transition">
+    <div className="w-12 h-12 bg-blue-50 rounded-xl flex flex-col items-center justify-center text-[#002d5e]">
+      <span className="text-[10px] font-black uppercase">{format(new Date(e.data_inicio), 'MMM', { locale: pt })}</span>
+      <span className="text-lg font-black">{format(new Date(e.data_inicio), 'dd')}</span>
+    </div>
+    <div className="flex-1">
+      <h4 className="font-bold text-sm text-gray-900">{e.titulo}</h4>
+      <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1"><MapPin size={12}/> {e.local}</div>
+    </div>
+
+    {/* BOTÃO DE EDIÇÃO: Visível apenas para Nível >= 3 */}
+    {nivelAcesso >= 3 && (
+      <Link 
+        href={`/calendario/gestao/${e.id}${e.clube_id ? `?clubeId=${e.clube_id}` : ''}`}
+        className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-blue-600 transition"
+      >
+        <Edit2 size={16} />
+      </Link>
+    )}
+  </div>
+))}
+
+useEffect(() => {
+  async function verificarPermissoes() {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      // 1. Procurar os cargos do utilizador neste contexto
+      const { data: meusCargos } = await supabase
+        .from('clube_equipa')
+        .select('cargo_nome')
+        .eq('perfil_id', user.id);
+
+      if (meusCargos && meusCargos.length > 0) {
+        const listaDeNomes = meusCargos.map(c => c.cargo_nome);
+
+        // 2. Ver o nível desses cargos na tabela de configuração
+        const { data: permissoes } = await supabase
+          .from('cargos_clube_config')
+          .select('nivel_acesso')
+          .in('cargo', listaDeNomes);
+
+        if (permissoes && permissoes.length > 0) {
+          // 3. Encontrar o nível mais alto e atualizar o estado
+          const nivelMaximo = Math.max(...permissoes.map(p => p.nivel_acesso || 1));
+          setNivelAcesso(nivelMaximo);
+        }
+      }
+    }
+  }
+
+  verificarPermissoes();
+}, []);
 
   // 1. Carregar eventos do mês atual
   useEffect(() => {

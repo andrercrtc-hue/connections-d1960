@@ -33,7 +33,7 @@ export function Sidebar() {
     { icon: <Home size={20}/>, label: "O meu Clube", path: clubeId ? `/diretorio-clubes/${clubeId}?view=socio` : '#' },
     { icon: <Award size={20}/>, label: "Equipa Distrital", path: "/equipa-distrital" },
     { icon: <Briefcase size={20}/>, label: "Projetos", path: "/dashboard/projetos" },
-    { icon: <Calendar size={20}/>, label: "Calendário", path: "/dashboard/calendario" },
+    { icon: <Calendar size={20}/>, label: "Calendário", path: "/calendario" },
     { icon: <Users size={20}/>, label: "Diretório de Clubes", path: "/diretorio-clubes" },
     { icon: <ClipboardList size={20}/>, label: "Relatórios", path: "/dashboard/relatorios" },
   ]
