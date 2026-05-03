@@ -197,8 +197,13 @@ export default function FormularioComissao() {
 
       // 5. Sucesso e Redirecionamento
       alert(isEditing ? "Alterações guardadas!" : "Comissão criada!")
-      router.push('/equipa-distrital')
-      router.refresh()
+
+      // Redirecionamento inteligente:[cite: 4]
+      if (clubeId) {
+        router.push(`/diretorio-clubes/${clubeId}/equipa-clube`)
+      } else {
+        router.push('/equipa-distrital')
+      }
 
     } catch (e: any) { 
       alert("Erro ao gravar: " + e.message) 

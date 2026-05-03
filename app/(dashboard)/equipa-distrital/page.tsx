@@ -342,7 +342,7 @@ export default function EquipaDistrital() {
       }).join(',')
   }
 
-  function exportEquipeToExcel() {
+  function exportEquipaToExcel() {
     if (equipaFiltrada.length === 0) return
     const header = ['Ordem', 'Membro', 'Função Distrital', 'Comissão']
     const rows = equipaFiltrada.map((m) => [
@@ -516,7 +516,7 @@ export default function EquipaDistrital() {
           <section className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-gray-50 flex justify-between items-center">
               <h3 className="text-lg font-black text-[#004a99]">Equipa Distrital</h3>
-              <button onClick={exportEquipeToExcel} className="flex items-center gap-2 bg-[#00a859] text-white px-5 py-2.5 rounded-xl font-black text-xs hover:bg-green-700 transition shadow-md"><FileDown size={16} /> Exportar</button>
+              <button onClick={exportEquipaToExcel} className="flex items-center gap-2 bg-[#00a859] text-white px-5 py-2.5 rounded-xl font-black text-xs hover:bg-green-700 transition shadow-md"><FileDown size={16} /> Exportar</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
