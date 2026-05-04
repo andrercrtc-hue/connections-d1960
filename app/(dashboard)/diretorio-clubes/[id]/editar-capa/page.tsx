@@ -18,7 +18,8 @@ import {
   Camera,
   Pencil,
   Calendar,
-  MapPin
+  MapPin,
+  Globe
 } from 'lucide-react'
 
 // ==========================================================================
@@ -123,7 +124,8 @@ export default function EditarCapaEDetalhes() {
     hora_reuniao: '',
     periodicidade_reuniao: 'Semanalmente',
     tipo_reuniao: 'Presencial',
-    local_reuniao: ''
+    local_reuniao: '',
+    lingua_reuniao: ''
   })
 
   // --- ESTADOS DA IMAGEM E PREVIEW ---
@@ -145,7 +147,7 @@ export default function EditarCapaEDetalhes() {
       try {
         const { data, error } = await supabase
           .from('clubes')
-          .select('nome, ano_fundacao, email_contacto, morada_completa, descricao, capa_url, dia_reuniao, hora_reuniao, periodicidade_reuniao, tipo_reuniao, local_reuniao')
+          .select('nome, ano_fundacao, email_contacto, morada_completa, descricao, capa_url, dia_reuniao, hora_reuniao, periodicidade_reuniao, tipo_reuniao, local_reuniao, lingua_reuniao')
           .eq('id', clubeId)
           .single()
 
@@ -164,7 +166,8 @@ export default function EditarCapaEDetalhes() {
             hora_reuniao: data.hora_reuniao || '',
             periodicidade_reuniao: data.periodicidade_reuniao || 'Semanalmente',
             tipo_reuniao: data.tipo_reuniao || 'Presencial',
-            local_reuniao: data.local_reuniao || ''
+            local_reuniao: data.local_reuniao || '',
+            lingua_reuniao: data.lingua_reuniao || ''
           })
           setPreviewImagem(data.capa_url || null)
         }
@@ -258,7 +261,8 @@ export default function EditarCapaEDetalhes() {
           hora_reuniao: formData.hora_reuniao,
           periodicidade_reuniao: formData.periodicidade_reuniao,
           tipo_reuniao: formData.tipo_reuniao,
-          local_reuniao: formData.local_reuniao
+          local_reuniao: formData.local_reuniao,
+          lingua_reuniao: formData.lingua_reuniao
         })
         .eq('id', clubeId)
 
@@ -546,6 +550,22 @@ export default function EditarCapaEDetalhes() {
                   />
                 </div>
               </div>
+
+              {/* Língua da Reunião*/}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#002d5e] uppercase tracking-widest ml-1">Língua da Reunião</label>
+                <div className="relative">
+                  <Globe className="absolute left-4 top-4 text-gray-400" size={20} />
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Português"
+                    value={formData.lingua_reuniao}
+                    onChange={(e) => setFormData({...formData, lingua_reuniao: e.target.value})}
+                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 pl-12 text-[#002d5e] font-bold focus:ring-4 focus:ring-[#fca311]/10 focus:border-[#fca311] outline-none transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
             </div>
           </div>
 

@@ -35,18 +35,23 @@ export default function ComunicacaoClube() {
 
       if (perfilData) {
         setPerfil(perfilData)
-        const { data: anunciosData } = await supabase
-          .from('anuncios')
-          .select('*')
-          .eq('clube_id', perfilData.clube_id)
-          .order('criado_at', { ascending: false })
-        
-        if (anunciosData) setAnuncios(anunciosData)
       }
+
+      // Usar params.id para listar os anúncios do clube correspondente à página atual
+      const { data: anunciosData, error } = await supabase
+        .from('anuncios')
+        .select('*')
+        .eq('clube_id', params.id)
+        // Nota: Se a tabela der erro, certifica-te que a coluna se chama 'criado_at' e não 'created_at'
+        .order('criado_at', { ascending: false })
+      
+      if (error) console.error("Erro ao carregar anúncios:", error.message)
+      if (anunciosData) setAnuncios(anunciosData)
+
       setLoading(false)
     }
     carregarDados()
-  }, [])
+  }, [params.id])
 
   const handlePublicar = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,8 +67,8 @@ export default function ComunicacaoClube() {
         descricao: form.conteudo,
         tipo: form.tipo, // Aqui envia 'normal' ou 'urgente'
         data_expiracao: form.data_expiracao || null,
-        clube_id: perfil.clube_id,
-        criado_por: perfil.id
+        clube_id: params.id,
+        criado_por: perfil?.id
       }])
 
     if (error) {
@@ -222,7 +227,7 @@ export default function ComunicacaoClube() {
                         </span>
                       </td>
                       <td className="px-8 py-5 text-center text-[11px] text-gray-500 font-medium">
-                        {new Date(anuncio.criado_at).toLocaleDateString('pt-PT')}
+                        {new Date(anuncio.criado_at || anuncio.created_at).toLocaleDateString('pt-PT')}
                       </td>
                       <td className="px-8 py-5 text-right">
                         <button 
