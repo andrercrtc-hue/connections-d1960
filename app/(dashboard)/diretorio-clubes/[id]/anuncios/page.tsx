@@ -46,7 +46,26 @@ export default function ComunicacaoClube() {
         .order('criado_at', { ascending: false })
       
       if (error) console.error("Erro ao carregar anúncios:", error.message)
-      if (anunciosData) setAnuncios(anunciosData)
+      
+      if (anunciosData) {
+        const hoje = new Date().toISOString().split('T')[0];
+        const validos: any[] = [];
+        const expiradosIds: string[] = [];
+
+        anunciosData.forEach((a: any) => {
+          // Se a data expiração for anterior a hoje, envia para a lista de eliminação
+          if (a.data_expiracao && a.data_expiracao < hoje) {
+            expiradosIds.push(a.id);
+          } else {
+            validos.push(a);
+          }
+        });
+
+        if (expiradosIds.length > 0) {
+          supabase.from('anuncios').delete().in('id', expiradosIds).then();
+        }
+        setAnuncios(validos);
+      }
 
       setLoading(false)
     }
@@ -208,7 +227,7 @@ export default function ComunicacaoClube() {
                   <tr className="bg-gray-50/50">
                     <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Título</th>
                     <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Tipo</th>
-                    <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Data</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Data de Expiração</th>
                     <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
                   </tr>
                 </thead>
@@ -227,7 +246,7 @@ export default function ComunicacaoClube() {
                         </span>
                       </td>
                       <td className="px-8 py-5 text-center text-[11px] text-gray-500 font-medium">
-                        {new Date(anuncio.criado_at || anuncio.created_at).toLocaleDateString('pt-PT')}
+                        {anuncio.data_expiracao ? new Date(anuncio.data_expiracao).toLocaleDateString('pt-PT') : 'Sem limite'}
                       </td>
                       <td className="px-8 py-5 text-right">
                         <button 

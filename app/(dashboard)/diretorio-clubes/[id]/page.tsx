@@ -94,7 +94,25 @@ export default function PaginaDinamicaClube() {
           .eq('clube_id', clubeIdUrl)
           .order('criado_at', { ascending: false }); // Se der erro, tenta 'criado_at'
 
-        if (anunciosData) setAnuncios(anunciosData);
+        if (anunciosData) {
+          const hoje = new Date().toISOString().split('T')[0];
+          const validos: any[] = [];
+          const expiradosIds: string[] = [];
+
+          anunciosData.forEach((a: any) => {
+            if (a.data_expiracao && a.data_expiracao < hoje) {
+              expiradosIds.push(a.id);
+            } else {
+              validos.push(a);
+            }
+          });
+
+          if (expiradosIds.length > 0) {
+            // Elimina automaticamente da base de dados em plano de fundo
+            supabase.from('anuncios').delete().in('id', expiradosIds).then();
+          }
+          setAnuncios(validos);
+        }
         if (errAnuncios) console.error("Erro nos anúncios:", errAnuncios);
       }
 
